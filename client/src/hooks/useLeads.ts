@@ -1,14 +1,9 @@
-/**
- * useLeads Hook
- * Manages lead data and operations
- */
-
 import { useState, useCallback, useEffect } from 'react';
 import { Lead } from '@/types';
 import { dbGetAll, dbPut, dbDelete } from '@/services/db';
 import { generateId } from '@/services/utils';
 
-export function useLeads() {
+export function useLeads(enabled = true) {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,8 +93,9 @@ export function useLeads() {
   }, [leads]);
 
   useEffect(() => {
+    if (!enabled) return;
     loadLeads();
-  }, [loadLeads]);
+  }, [enabled, loadLeads]);
 
   return {
     leads,
