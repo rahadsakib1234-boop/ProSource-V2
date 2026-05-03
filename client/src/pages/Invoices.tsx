@@ -265,7 +265,7 @@ export default function Invoices() {
   <input
     type="number"
     placeholder="0.00"
-    value={formData.subtotal || ''}
+    value={formData.subtotal ?? ''}
     onChange={(e) => setFormData({ ...formData, subtotal: Number(e.target.value) || 0 })}
     className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
   />
