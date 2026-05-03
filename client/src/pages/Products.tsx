@@ -8,10 +8,11 @@ import { useApp } from '@/contexts/AppContext';
 import { Layout } from '@/components/Layout';
 import { Product } from '@/types';
 
+const toNumber = (value: string) => (value.trim() === '' ? 0 : Number(value));
+
 export default function Products() {
   const { products, clients } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<Partial<Product>>({
     status: 'pending',
@@ -27,8 +28,28 @@ export default function Products() {
 
   const handleAddProduct = async () => {
     if (!formData.clientId || !formData.name) return;
+
+    const productData: Omit<Product, 'id' | 'createdAt'> = {
+      clientId: formData.clientId,
+      name: formData.name,
+      qty: toNumber(String(formData.qty ?? 0)),
+      unit: formData.unit || '',
+      cost: toNumber(String(formData.cost ?? 0)),
+      costCur: formData.costCur || 'USD',
+      charge: toNumber(String(formData.charge ?? 0)),
+      chargeCur: formData.chargeCur || 'BDT',
+      status: (formData.status || 'pending') as Product['status'],
+      supplier: formData.supplier,
+      link: formData.link,
+      tracking: formData.tracking,
+      shipstatus: formData.shipstatus,
+      note: formData.note,
+      images: formData.images || [],
+      files: formData.files || [],
+    };
+
     try {
-      await products.saveProduct(formData as Omit<Product, 'id' | 'createdAt'>);
+      await products.saveProduct(productData);
       setFormData({ status: 'pending' });
       setShowForm(false);
     } catch (err) {
@@ -64,7 +85,6 @@ export default function Products() {
   return (
     <Layout onSearch={setSearchQuery}>
       <div className="space-y-6">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Products</h1>
@@ -80,7 +100,6 @@ export default function Products() {
           </button>
         </div>
 
-        {/* Products Table */}
         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -137,7 +156,6 @@ export default function Products() {
           </div>
         </div>
 
-        {/* Add Product Modal */}
         {showForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <div className="bg-card rounded-2xl p-6 w-full max-w-2xl shadow-lg max-h-[90vh] overflow-y-auto">
@@ -175,8 +193,8 @@ export default function Products() {
                   <input
                     type="number"
                     placeholder="Qty"
-                    value={formData.qty || ''}
-                    onChange={(e) => setFormData({ ...formData, qty: parseFloat(e.target.value) })}
+                    value={formData.qty ?? ''}
+                    onChange={(e) => setFormData({ ...formData, qty: toNumber(e.target.value) })}
                     className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
@@ -197,8 +215,8 @@ export default function Products() {
                   <input
                     type="number"
                     placeholder="Cost"
-                    value={formData.cost || ''}
-                    onChange={(e) => setFormData({ ...formData, cost: parseFloat(e.target.value) })}
+                    value={formData.cost ?? ''}
+                    onChange={(e) => setFormData({ ...formData, cost: toNumber(e.target.value) })}
                     className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
@@ -219,8 +237,8 @@ export default function Products() {
                   <input
                     type="number"
                     placeholder="Charge"
-                    value={formData.charge || ''}
-                    onChange={(e) => setFormData({ ...formData, charge: parseFloat(e.target.value) })}
+                    value={formData.charge ?? ''}
+                    onChange={(e) => setFormData({ ...formData, charge: toNumber(e.target.value) })}
                     className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>
@@ -240,7 +258,7 @@ export default function Products() {
                   <label className="block text-sm font-medium text-foreground mb-1">Status</label>
                   <select
                     value={formData.status || 'pending'}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.value as Product['status'] })}
                     className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   >
                     <option value="pending">Pending</option>
