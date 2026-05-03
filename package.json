@@ -4,6 +4,8 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
+    "dev:electron": "concurrently -k \"vite --host\" \"wait-on http://localhost:5173 && electron -r tsx/cjs electron/main.ts\"",
+"build:electron": "vite build && esbuild electron/main.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/electron/main.js && esbuild electron/preload.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/electron/preload.js",
     "dev": "vite --host",
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
