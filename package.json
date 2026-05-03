@@ -3,16 +3,15 @@
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
-  "scripts": {
-    "dev:electron": "concurrently -k \"vite --host\" \"wait-on http://localhost:5173 && electron -r tsx/cjs electron/main.ts\"",
-"build:electron": "vite build && esbuild electron/main.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/electron/main.js && esbuild electron/preload.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/electron/preload.js",
-    "dev": "vite --host",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "start": "NODE_ENV=production node dist/index.js",
-    "preview": "vite preview --host",
-    "check": "tsc --noEmit",
-    "format": "prettier --write ."
-  },
+  "main": "electron/main.js",
+"scripts": {
+  "dev": "vite --host",
+  "dev:electron": "concurrently -k \"vite --host\" \"wait-on http://localhost:5173 && electron -r tsx/cjs electron/main.ts\"",
+  "build:web": "vite build",
+  "build:electron:main": "esbuild electron/main.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/electron/main.js",
+  "build:electron:preload": "esbuild electron/preload.ts --platform=node --packages=external --bundle --format=cjs --outfile=dist/electron/preload.js",
+  "build:electron": "pnpm run build:web && pnpm run build:electron:main && pnpm run build:electron:preload && electron-builder --config electron-builder.yml --win --x64 --publish never"
+},
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
