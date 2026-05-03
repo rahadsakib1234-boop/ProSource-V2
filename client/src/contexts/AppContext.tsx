@@ -13,26 +13,13 @@ import { initDB } from '@/services/db';
 import { fetchExchangeRates } from '@/services/currency';
 
 interface AppContextType {
-  // Database
   dbReady: boolean;
   dbError: string | null;
-
-  // Clients
   clients: ReturnType<typeof useClients>;
-
-  // Products
   products: ReturnType<typeof useProducts>;
-
-  // Leads
   leads: ReturnType<typeof useLeads>;
-
-  // Invoices
   invoices: ReturnType<typeof useInvoices>;
-
-  // Settings
   settings: ReturnType<typeof useSettings>;
-
-  // Exchange rates
   ratesReady: boolean;
 }
 
@@ -43,13 +30,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [dbError, setDbError] = useState<string | null>(null);
   const [ratesReady, setRatesReady] = useState(false);
 
-const clients = useClients(dbReady);
-const products = useProducts(dbReady);
-const leads = useLeads(dbReady);
-const invoices = useInvoices(dbReady);
-const settings = useSettings();
+  const clients = useClients(dbReady);
+  const products = useProducts(dbReady);
+  const leads = useLeads(dbReady);
+  const invoices = useInvoices(dbReady);
+  const settings = useSettings();
 
-  // Initialize database
   useEffect(() => {
     async function initializeDB() {
       try {
@@ -65,7 +51,6 @@ const settings = useSettings();
     initializeDB();
   }, []);
 
-  // Fetch exchange rates
   useEffect(() => {
     async function loadRates() {
       try {
@@ -73,7 +58,7 @@ const settings = useSettings();
         setRatesReady(true);
       } catch (err) {
         console.error('Failed to fetch exchange rates:', err);
-        setRatesReady(true); // Still mark as ready to use fallback rates
+        setRatesReady(true);
       }
     }
 
