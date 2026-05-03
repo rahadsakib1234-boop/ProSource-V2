@@ -1,8 +1,3 @@
-/**
- * useClients Hook
- * Manages client data and operations
- */
-
 import { useState, useCallback, useEffect } from 'react';
 import { Client } from '@/types';
 import { dbGetAll, dbPut, dbDelete } from '@/services/db';
@@ -13,7 +8,6 @@ export function useClients(enabled = true) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load all clients
   const loadClients = useCallback(async () => {
     try {
       setLoading(true);
@@ -28,7 +22,6 @@ export function useClients(enabled = true) {
     }
   }, []);
 
-  // Add or update client
   const saveClient = useCallback(
     async (client: Omit<Client, 'id' | 'createdAt'> & { id?: string; createdAt?: number }) => {
       try {
@@ -49,7 +42,6 @@ export function useClients(enabled = true) {
     [loadClients]
   );
 
-  // Delete client
   const deleteClient = useCallback(
     async (id: string) => {
       try {
@@ -63,12 +55,10 @@ export function useClients(enabled = true) {
     [loadClients]
   );
 
-  // Get client by ID
   const getClientById = useCallback((id: string) => {
     return clients.find((c) => c.id === id);
   }, [clients]);
 
-  // Search clients
   const searchClients = useCallback((query: string) => {
     const q = query.toLowerCase();
     return clients.filter(
@@ -80,10 +70,10 @@ export function useClients(enabled = true) {
     );
   }, [clients]);
 
-  // Initial load
   useEffect(() => {
+    if (!enabled) return;
     loadClients();
-  }, [loadClients]);
+  }, [enabled, loadClients]);
 
   return {
     clients,
