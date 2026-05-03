@@ -6,16 +6,13 @@ directories:
   output: release
 
 files:
-  - from: dist
-    to: .
-    filter:
-      - '**/*'
-  - from: package.json
-    to: .
-  - from: assets
-    to: dist/assets
-    filter:
-      - '**/*'
+  - dist/**/*          # includes dist/public and dist/electron with their subfolders
+  - package.json
+  - assets/**/*
+
+# Ensure the main entry is correct (relative to the asar root)
+extraMetadata:
+  main: dist/electron/main.js
 
 win:
   target:
