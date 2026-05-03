@@ -27,8 +27,8 @@ function createWindow() {
     minHeight: 600,
     webPreferences: {
       preload: isDev
-  ? path.join(__dirname, 'preload.ts')
-  : path.join(__dirname, 'preload.js'),
+        ? path.join(__dirname, 'preload.ts')
+        : path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
@@ -73,7 +73,6 @@ app.on('activate', () => {
  */
 ipcMain.handle('license:verify', async (event, token: string) => {
   try {
-    // Verify license token (placeholder - implement actual verification)
     const isValid = verifyLicenseToken(token);
     if (isValid) {
       saveLicenseFile(token);
@@ -82,7 +81,10 @@ ipcMain.handle('license:verify', async (event, token: string) => {
       return { valid: false, message: 'Invalid license token' };
     }
   } catch (err) {
-    return { valid: false, message: err instanceof Error ? err.message : 'License verification failed' };
+    return {
+      valid: false,
+      message: err instanceof Error ? err.message : 'License verification failed',
+    };
   }
 });
 
@@ -106,7 +108,10 @@ ipcMain.handle('license:clear', async () => {
     }
     return { success: true };
   } catch (err) {
-    return { success: false, message: err instanceof Error ? err.message : 'Failed to clear license' };
+    return {
+      success: false,
+      message: err instanceof Error ? err.message : 'Failed to clear license',
+    };
   }
 });
 
@@ -155,8 +160,6 @@ ipcMain.handle('file:backup', async (event, data: any) => {
  * License verification (placeholder implementation)
  */
 function verifyLicenseToken(token: string): boolean {
-  // TODO: Implement actual license verification with cryptographic signing
-  // For now, accept any non-empty token
   return token && token.length > 0;
 }
 
