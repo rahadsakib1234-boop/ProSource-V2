@@ -16,8 +16,8 @@ extraMetadata:
 
 win:
   target:
-    - nsis
-    - portable
+    - nsis       # or portable
+  icon: assets/icon.ico
 
 nsis:
   oneClick: false
