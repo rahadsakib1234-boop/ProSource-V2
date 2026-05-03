@@ -1,8 +1,10 @@
 appId: com.prosource.crm
 productName: ProSource CRM
+
 directories:
   buildResources: assets
-  output: dist/build
+  output: release
+
 files:
   - from: dist
     to: .
@@ -10,6 +12,10 @@ files:
       - '**/*'
   - from: package.json
     to: .
+  - from: assets
+    to: dist/assets
+    filter:
+      - '**/*'
 
 win:
   target:
@@ -33,8 +39,3 @@ linux:
     - AppImage
     - deb
   category: Office
-
-publish:
-  provider: github
-  owner: rahadsakib1234-boop
-  repo: ProSource
