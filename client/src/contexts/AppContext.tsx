@@ -43,11 +43,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [dbError, setDbError] = useState<string | null>(null);
   const [ratesReady, setRatesReady] = useState(false);
 
-  const clients = useClients();
-  const products = useProducts();
-  const leads = useLeads();
-  const invoices = useInvoices();
-  const settings = useSettings();
+const clients = useClients(dbReady);
+const products = useProducts(dbReady);
+const leads = useLeads(dbReady);
+const invoices = useInvoices(dbReady);
+const settings = useSettings();
 
   // Initialize database
   useEffect(() => {
