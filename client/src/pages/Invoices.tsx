@@ -14,29 +14,52 @@ export default function Invoices() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<Partial<Invoice>>({
-    payStatus: 'unpaid',
-    currency: settings.settings.currency,
-    products: [],
-  });
-
+  subtotal: 0,
+  discAmt: 0,
+  taxAmt: 0,
+  total: 0,
+  payStatus: 'unpaid',
+  currency: settings.settings.currency,
+  products: [],
+});
   const filteredInvoices = useMemo(() => {
     return invoices.searchInvoices(searchQuery);
   }, [searchQuery, invoices.invoices]);
 
   const handleAddInvoice = async () => {
-    if (!formData.num || !formData.clientId) return;
-    try {
-      await invoices.saveInvoice(formData as Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>);
-      setFormData({
-        payStatus: 'unpaid',
-        currency: settings.settings.currency,
-        products: [],
-      });
-      setShowForm(false);
-    } catch (err) {
-      console.error('Failed to save invoice:', err);
-    }
-  };
+  if (!formData.num || !formData.clientId) return;
+
+  const subtotal = Number(formData.subtotal) || 0;
+  const discAmt = Number(formData.discAmt) || 0;
+  const taxAmt = Number(formData.taxAmt) || 0;
+  const total = subtotal - discAmt + taxAmt;
+
+  try {
+    await invoices.saveInvoice({
+      ...formData,
+      subtotal,
+      discAmt,
+      taxAmt,
+      total,
+      payStatus: formData.payStatus || 'unpaid',
+      currency: formData.currency || settings.settings.currency,
+      products: formData.products || [],
+    } as Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>);
+
+    setFormData({
+      subtotal: 0,
+      discAmt: 0,
+      taxAmt: 0,
+      total: 0,
+      payStatus: 'unpaid',
+      currency: settings.settings.currency,
+      products: [],
+    });
+    setShowForm(false);
+  } catch (err) {
+    console.error('Failed to save invoice:', err);
+  }
+};
 
   const handleDeleteInvoice = async (id: string) => {
     if (confirm('Are you sure you want to delete this invoice?')) {
@@ -238,15 +261,15 @@ export default function Invoices() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Total Amount</label>
-                  <input
-                    type="number"
-                    placeholder="0.00"
-                    value={formData.total || ''}
-                    onChange={(e) => setFormData({ ...formData, total: parseFloat(e.target.value) })}
-                    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  />
-                </div>
+  <label className="block text-sm font-medium text-foreground mb-1">Subtotal</label>
+  <input
+    type="number"
+    placeholder="0.00"
+    value={formData.subtotal || ''}
+    onChange={(e) => setFormData({ ...formData, subtotal: Number(e.target.value) || 0 })}
+    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+  />
+</div>
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">Currency</label>
@@ -260,26 +283,35 @@ export default function Invoices() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Discount</label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={formData.discount || ''}
-                    onChange={(e) => setFormData({ ...formData, discount: parseFloat(e.target.value) })}
-                    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  />
-                </div>
+  <label className="block text-sm font-medium text-foreground mb-1">Discount Amount</label>
+  <input
+    type="number"
+    placeholder="0"
+    value={formData.discAmt || ''}
+    onChange={(e) => setFormData({ ...formData, discAmt: Number(e.target.value) || 0 })}
+    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+  />
+</div>
 
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Tax</label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={formData.tax || ''}
-                    onChange={(e) => setFormData({ ...formData, tax: parseFloat(e.target.value) })}
-                    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
-                  />
-                </div>
+               <div>
+  <label className="block text-sm font-medium text-foreground mb-1">Tax Amount</label>
+  <input
+    type="number"
+    placeholder="0"
+    value={formData.taxAmt || ''}
+    onChange={(e) => setFormData({ ...formData, taxAmt: Number(e.target.value) || 0 })}
+    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+  />
+</div>
+                <div className="col-span-2">
+  <label className="block text-sm font-medium text-foreground mb-1">Total</label>
+  <div className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-secondary/40">
+    {formatCurrency(
+      (Number(formData.subtotal) || 0) - (Number(formData.discAmt) || 0) + (Number(formData.taxAmt) || 0),
+      formData.currency || settings.settings.currency
+    )}
+  </div>
+</div>
 
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-foreground mb-1">Status</label>
