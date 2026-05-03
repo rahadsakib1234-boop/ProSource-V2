@@ -7,7 +7,6 @@ import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as fs from 'fs';
-import * as crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,7 +26,9 @@ function createWindow() {
     minWidth: 1024,
     minHeight: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.ts'),
+      preload: isDev
+  ? path.join(__dirname, 'preload.ts')
+  : path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
@@ -37,7 +38,7 @@ function createWindow() {
 
   const startUrl = isDev
     ? 'http://localhost:5173'
-    : `file://${path.join(__dirname, '../dist/index.html')}`;
+    : `file://${path.join(__dirname, '../public/index.html')}`;
 
   mainWindow.loadURL(startUrl);
 
