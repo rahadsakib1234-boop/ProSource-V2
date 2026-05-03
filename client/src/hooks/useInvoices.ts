@@ -1,14 +1,9 @@
-/**
- * useInvoices Hook
- * Manages invoice data and operations
- */
-
 import { useState, useCallback, useEffect } from 'react';
 import { Invoice } from '@/types';
 import { dbGetAll, dbPut, dbDelete } from '@/services/db';
 import { generateId } from '@/services/utils';
 
-export function useInvoices() {
+export function useInvoices(enabled = true) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -107,8 +102,9 @@ export function useInvoices() {
   }, [invoices]);
 
   useEffect(() => {
+    if (!enabled) return;
     loadInvoices();
-  }, [loadInvoices]);
+  }, [enabled, loadInvoices]);
 
   return {
     invoices,
