@@ -1,14 +1,9 @@
-/**
- * useProducts Hook
- * Manages product data and operations
- */
-
 import { useState, useCallback, useEffect } from 'react';
 import { Product } from '@/types';
 import { dbGetAll, dbPut, dbDelete } from '@/services/db';
 import { generateId } from '@/services/utils';
 
-export function useProducts() {
+export function useProducts(enabled = true) {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,8 +90,9 @@ export function useProducts() {
   );
 
   useEffect(() => {
+    if (!enabled) return;
     loadProducts();
-  }, [loadProducts]);
+  }, [enabled, loadProducts]);
 
   return {
     products,
