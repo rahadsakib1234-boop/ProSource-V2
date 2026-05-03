@@ -1,0 +1,44 @@
+appId: com.prosource.crm
+productName: ProSource CRM
+directories:
+  buildResources: assets
+  output: dist/build
+files:
+  - from: dist
+    to: .
+    filter:
+      - '!**/*.map'
+  - from: electron
+    to: electron
+    filter:
+      - '*.ts'
+
+win:
+  target:
+    - nsis
+    - portable
+  certificateFile: null
+  certificatePassword: null
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+mac:
+  target:
+    - dmg
+    - zip
+  category: public.app-category.business
+
+linux:
+  target:
+    - AppImage
+    - deb
+  category: Office
+
+publish:
+  provider: github
+  owner: rahadsakib1234-boop
+  repo: ProSource
