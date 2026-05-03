@@ -7,11 +7,9 @@ files:
   - from: dist
     to: .
     filter:
-      - '!**/*.map'
-  - from: electron
-    to: electron
-    filter:
-      - '*.ts'
+      - '**/*'
+  - from: package.json
+    to: .
 
 win:
   target:
