@@ -6,6 +6,7 @@
 import { useHashLocation } from 'wouter/use-hash-location';
 import { useApp } from '@/contexts/AppContext';
 import { getIndustryProfile } from '@/services/industries';
+import { SyncStatusIndicator } from './SyncStatusIndicator';
 
 interface NavItem {
   id: string;
@@ -95,6 +96,11 @@ export function Sidebar() {
           </button>
         ))}
       </nav>
+
+      {/* Sync Status */}
+      <div className="border-t border-white/10 px-3 py-3">
+        <SyncStatusIndicator />
+      </div>
 
       {/* Footer */}
       <div className="border-t border-white/10 px-3 py-3 text-xs text-sidebar-foreground/40 font-mono">

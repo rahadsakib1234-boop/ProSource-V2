@@ -1,4 +1,4 @@
-/**
+/*
  * Settings Page
  * Configure application settings and preferences
  */
@@ -7,11 +7,14 @@ import { useState, useEffect } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { Layout } from '@/components/Layout';
 import { INDUSTRY_PROFILES } from '@/services/industries';
+import { syncService } from '@/services/syncService';
 
 export default function Settings() {
-  const { settings } = useApp();
+  const { settings, auth } = useApp();
   const [formData, setFormData] = useState(settings.settings);
   const [saved, setSaved] = useState(false);
+  const [isCreatingBackup, setIsCreatingBackup] = useState(false);
+  const [backupMessage, setBackupMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
     setFormData(settings.settings);
@@ -21,6 +24,41 @@ export default function Settings() {
     settings.saveSettings(formData);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  };
+
+  const handleCreateBackup = async () => {
+    if (!auth.user) return;
+    
+    setIsCreatingBackup(true);
+    setBackupMessage(null);
+    
+    try {
+      const result = await syncService.createBackup();
+      setBackupMessage({
+        type: 'success',
+        text: `✓ Backup created successfully (${(result.size / 1024 / 1024).toFixed(2)} MB)`
+      });
+    } catch (error) {
+      setBackupMessage({
+        type: 'error',
+        text: `✗ Backup failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
+    } finally {
+      setIsCreatingBackup(false);
+    }
+  };
+
+  const handleListBackups = async () => {
+    try {
+      const result = await syncService.getBackups();
+      console.log('Backups:', result);
+      // TODO: Show backup list in modal
+    } catch (error) {
+      setBackupMessage({
+        type: 'error',
+        text: `Failed to fetch backups: ${error instanceof Error ? error.message : 'Unknown error'}`
+      });
+    }
   };
 
   return (
@@ -136,10 +174,10 @@ export default function Settings() {
                 </p>
                 <p>A professional CRM solution for sourcing businesses</p>
                 <p className="pt-2">
-                  <strong>Data Storage:</strong> Local IndexedDB (your data stays on your device)
+                  <strong>Data Storage:</strong> Local IndexedDB + Cloud Sync
                 </p>
                 <p>
-                  <strong>Last Backup:</strong> Check your backups folder for automatic backups
+                  <strong>Cloud Backup:</strong> Encrypted with AES-256
                 </p>
               </div>
             </div>
@@ -162,18 +200,47 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* Cloud Backup & Restore */}
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm max-w-2xl">
+          <h3 className="font-semibold text-foreground mb-4">☁️ Cloud Backup & Restore</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Securely backup your data to the cloud with AES-256 encryption. Admins can restore from previous backups.
+          </p>
+          <div className="space-y-3">
+            <button 
+              onClick={handleCreateBackup}
+              disabled={isCreatingBackup}
+              className="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-medium text-sm hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isCreatingBackup ? '⏳ Creating backup...' : '💾 Create Cloud Backup'}
+            </button>
+            <button 
+              onClick={handleListBackups}
+              className="w-full px-4 py-2 border border-border rounded-lg font-medium text-sm hover:bg-secondary transition-colors text-left"
+            >
+              📋 View Backups
+            </button>
+          </div>
+          {backupMessage && (
+            <div className={`mt-4 p-3 rounded-lg text-sm ${
+              backupMessage.type === 'success' 
+                ? 'bg-green-50 text-green-700 border border-green-200'
+                : 'bg-red-50 text-red-700 border border-red-200'
+            }`}>
+              {backupMessage.text}
+            </div>
+          )}
+        </div>
+
         {/* Data Management */}
         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm max-w-2xl">
-          <h3 className="font-semibold text-foreground mb-4">Data Management</h3>
+          <h3 className="font-semibold text-foreground mb-4">Local Data Management</h3>
           <div className="space-y-3">
             <button className="w-full px-4 py-2 border border-border rounded-lg font-medium text-sm hover:bg-secondary transition-colors text-left">
               📥 Export All Data
             </button>
             <button className="w-full px-4 py-2 border border-border rounded-lg font-medium text-sm hover:bg-secondary transition-colors text-left">
               📤 Import Data
-            </button>
-            <button className="w-full px-4 py-2 border border-border rounded-lg font-medium text-sm hover:bg-secondary transition-colors text-left">
-              💾 Create Backup
             </button>
             <button className="w-full px-4 py-2 border border-red-200 rounded-lg font-medium text-sm hover:bg-red-50 transition-colors text-left text-red-600">
               🗑️ Clear All Data (Irreversible)
