@@ -9,6 +9,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { useLeads } from '@/hooks/useLeads';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useSettings } from '@/hooks/useSettings';
+import { useAuth } from '@/hooks/useAuth';
 import { initDB } from '@/services/db';
 import { fetchExchangeRates } from '@/services/currency';
 
@@ -20,6 +21,7 @@ interface AppContextType {
   leads: ReturnType<typeof useLeads>;
   invoices: ReturnType<typeof useInvoices>;
   settings: ReturnType<typeof useSettings>;
+  auth: ReturnType<typeof useAuth>;
   ratesReady: boolean;
 }
 
@@ -35,6 +37,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const leads = useLeads(dbReady);
   const invoices = useInvoices(dbReady);
   const settings = useSettings();
+  const auth = useAuth();
 
   useEffect(() => {
     async function initializeDB() {
@@ -73,6 +76,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     leads,
     invoices,
     settings,
+    auth,
     ratesReady,
   };
 

@@ -9,7 +9,8 @@ import { StatCard } from '@/components/StatCard';
 import { formatCurrency } from '@/services/currency';
 
 export default function Dashboard() {
-  const { clients, products, leads, invoices, settings } = useApp();
+  const { clients, products, leads, invoices, settings, auth } = useApp();
+  const isAdmin = auth.user?.role === 'admin';
 
   const totalRevenue = invoices.getTotalRevenue();
   const paidAmount = invoices.getPaidAmount();
@@ -43,35 +44,41 @@ export default function Dashboard() {
             subtitle={`${conversionRate}% conversion`}
             variant="orange"
           />
-          <StatCard
-            icon="💰"
-            label="Total Revenue"
-            value={formatCurrency(totalRevenue, settings.settings.currency)}
-            variant="purple"
-          />
+          {isAdmin && (
+            <StatCard
+              icon="💰"
+              label="Total Revenue"
+              value={formatCurrency(totalRevenue, settings.settings.currency)}
+              variant="purple"
+            />
+          )}
         </div>
 
         {/* Revenue Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Paid Invoices</h3>
-            <div className="text-3xl font-bold text-green-600 font-mono">
-              {formatCurrency(paidAmount, settings.settings.currency)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {invoices.filterByPayStatus('paid').length} invoices
-            </p>
-          </div>
+        <div className={`grid grid-cols-1 ${isAdmin ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-4`}>
+          {isAdmin && (
+            <>
+              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+                <h3 className="text-sm font-semibold text-foreground mb-4">Paid Invoices</h3>
+                <div className="text-3xl font-bold text-green-600 font-mono">
+                  {formatCurrency(paidAmount, settings.settings.currency)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {invoices.filterByPayStatus('paid').length} invoices
+                </p>
+              </div>
 
-          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Unpaid Invoices</h3>
-            <div className="text-3xl font-bold text-orange-600 font-mono">
-              {formatCurrency(unpaidAmount, settings.settings.currency)}
-            </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {invoices.filterByPayStatus('unpaid').length + invoices.filterByPayStatus('partial').length} invoices
-            </p>
-          </div>
+              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+                <h3 className="text-sm font-semibold text-foreground mb-4">Unpaid Invoices</h3>
+                <div className="text-3xl font-bold text-orange-600 font-mono">
+                  {formatCurrency(unpaidAmount, settings.settings.currency)}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {invoices.filterByPayStatus('unpaid').length + invoices.filterByPayStatus('partial').length} invoices
+                </p>
+              </div>
+            </>
+          )}
 
           <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
             <h3 className="text-sm font-semibold text-foreground mb-4">Pending Products</h3>
@@ -85,41 +92,43 @@ export default function Dashboard() {
         </div>
 
         {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className={`grid grid-cols-1 ${isAdmin ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-6`}>
           {/* Recent Invoices */}
-          <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-            <div className="px-6 py-4 border-b border-border">
-              <h3 className="font-semibold text-foreground">Recent Invoices</h3>
-            </div>
-            <div className="divide-y divide-border">
-              {recentInvoices.length > 0 ? (
-                recentInvoices.map((inv) => (
-                  <div key={inv.id} className="px-6 py-3 flex items-center justify-between hover:bg-secondary/50">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{inv.num}</p>
-                      <p className="text-xs text-muted-foreground">{inv.issueDate}</p>
+          {isAdmin && (
+            <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+              <div className="px-6 py-4 border-b border-border">
+                <h3 className="font-semibold text-foreground">Recent Invoices</h3>
+              </div>
+              <div className="divide-y divide-border">
+                {recentInvoices.length > 0 ? (
+                  recentInvoices.map((inv) => (
+                    <div key={inv.id} className="px-6 py-3 flex items-center justify-between hover:bg-secondary/50">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{inv.num}</p>
+                        <p className="text-xs text-muted-foreground">{inv.issueDate}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-semibold text-foreground">
+                          {formatCurrency(inv.total, inv.currency)}
+                        </p>
+                        <p className={`text-xs font-medium ${
+                          inv.payStatus === 'paid' ? 'text-green-600' :
+                          inv.payStatus === 'partial' ? 'text-orange-600' :
+                          'text-red-600'
+                        }`}>
+                          {inv.payStatus.toUpperCase()}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-semibold text-foreground">
-                        {formatCurrency(inv.total, inv.currency)}
-                      </p>
-                      <p className={`text-xs font-medium ${
-                        inv.payStatus === 'paid' ? 'text-green-600' :
-                        inv.payStatus === 'partial' ? 'text-orange-600' :
-                        'text-red-600'
-                      }`}>
-                        {inv.payStatus.toUpperCase()}
-                      </p>
-                    </div>
+                  ))
+                ) : (
+                  <div className="px-6 py-8 text-center text-muted-foreground text-sm">
+                    No invoices yet
                   </div>
-                ))
-              ) : (
-                <div className="px-6 py-8 text-center text-muted-foreground text-sm">
-                  No invoices yet
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Open Leads */}
           <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">

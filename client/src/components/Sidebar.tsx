@@ -17,11 +17,13 @@ interface NavItem {
 
 export function Sidebar() {
   const [location, setLocation] = useHashLocation();
-  const { clients, products, leads, settings } = useApp();
+  const { clients, products, leads, settings, auth } = useApp();
   
   const industry = getIndustryProfile(settings.settings.industry || 'sourcing');
   const terms = industry?.terminology;
   const enabledModules = industry?.defaultModules || [];
+
+  const isAdmin = auth.user?.role === 'admin';
 
   const navItems: NavItem[] = [
     { id: 'Dashboard', label: 'Dashboard', icon: '📊', path: '/' },
@@ -29,13 +31,16 @@ export function Sidebar() {
     { id: 'Products', label: terms?.products || 'Products', icon: '📦', path: '/products', badge: products.products.length },
     { id: 'Leads', label: terms?.leads || 'Leads', icon: '🎯', path: '/leads', badge: leads.getOpenLeads().length },
     { id: 'Pipeline', label: 'Pipeline', icon: '🔄', path: '/pipeline' },
-    { id: 'Invoices', label: terms?.invoices || 'Invoices', icon: '🧾', path: '/invoices' },
+    ...(isAdmin ? [{ id: 'Invoices', label: terms?.invoices || 'Invoices', icon: '🧾', path: '/invoices' }] : []),
   ].filter(item => enabledModules.includes(item.id));
 
   const toolItems: NavItem[] = [
-    { id: 'Currency', label: 'Currency', icon: '💱', path: '/currency' },
-    { id: 'Export', label: 'Export', icon: '📥', path: '/export' },
-    { id: 'Settings', label: 'Settings', icon: '⚙️', path: '/settings' },
+    ...(isAdmin ? [
+      { id: 'Currency', label: 'Currency', icon: '💱', path: '/currency' },
+      { id: 'Export', label: 'Export', icon: '📥', path: '/export' },
+      { id: 'Settings', label: 'Settings', icon: '⚙️', path: '/settings' },
+      { id: 'Users', label: 'Team', icon: '👥', path: '/users' }
+    ] : []),
   ].filter(item => enabledModules.includes(item.id));
 
   const isActive = (path: string) => location === path;
@@ -43,11 +48,20 @@ export function Sidebar() {
   return (
     <div className="sidebar">
       {/* Logo */}
-      <div className="sidebar-logo">
-        <div className="brand">
-          Pro<span>Source</span>
+      <div className="sidebar-logo flex justify-between items-center pr-4">
+        <div>
+          <div className="brand">
+            Pro<span>Source</span>
+          </div>
+          <div className="tagline">CRM v2</div>
         </div>
-        <div className="tagline">CRM v2</div>
+        <button 
+          onClick={() => auth.logout()}
+          className="p-2 hover:bg-white/10 rounded-lg transition-colors text-lg"
+          title="Logout"
+        >
+          🚪
+        </button>
       </div>
 
       {/* Navigation */}

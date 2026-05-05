@@ -96,6 +96,21 @@ export interface Settings {
   invPrefix: string;
   industry?: string;
   isConfigured?: boolean;
+  authEnabled?: boolean;
+}
+
+export interface User {
+  id: string;
+  username: string;
+  passwordHash: string;
+  role: 'admin' | 'employee';
+  createdAt: number;
+  lastLogin?: number;
+}
+
+export interface AuthState {
+  user: User | null;
+  isAuthenticated: boolean;
 }
 
 export interface IndustryProfile {

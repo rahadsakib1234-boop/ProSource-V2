@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AppProvider, useApp } from "./contexts/AppContext";
 import { OnboardingWizard } from "./components/OnboardingWizard";
+import { Login } from "./components/Login";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -17,6 +18,7 @@ import Invoices from "./pages/Invoices";
 import Currency from "./pages/Currency";
 import Export from "./pages/Export";
 import Settings from "./pages/Settings";
+import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 
 function Router() {
@@ -32,6 +34,7 @@ function Router() {
       <Route path="/currency" component={Currency} />
       <Route path="/export" component={Export} />
       <Route path="/settings" component={Settings} />
+      <Route path="/users" component={UserManagement} />
       <Route path="/404" component={NotFound} />
         {/* Final fallback route */}
         <Route component={NotFound} />
@@ -41,22 +44,33 @@ function Router() {
 }
 
 function AppContent() {
-  const { settings } = useApp();
+  const { settings, auth } = useApp();
 
-  if (settings.loading) return null;
+  if (settings.loading || auth.loading) return null;
+
+  // 1. Force Admin Setup or Login
+  const hasUsers = auth.getUsers().length > 0;
+  if (!auth.isAuthenticated && (settings.settings.authEnabled || !hasUsers)) {
+    return <Login />;
+  }
+
+  // 2. Initial Setup if not configured
+  if (!settings.settings.isConfigured) {
+    return (
+      <OnboardingWizard 
+        onComplete={(industryId) => {
+          settings.updateSettings({ 
+            industry: industryId, 
+            isConfigured: true,
+            authEnabled: true // Enable auth by default after first setup
+          });
+        }} 
+      />
+    );
+  }
 
   return (
     <>
-      {!settings.settings.isConfigured && (
-        <OnboardingWizard 
-          onComplete={(industryId) => {
-            settings.updateSettings({ 
-              industry: industryId, 
-              isConfigured: true 
-            });
-          }} 
-        />
-      )}
       <TooltipProvider>
         <Toaster />
         <Router />
