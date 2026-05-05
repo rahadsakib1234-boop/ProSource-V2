@@ -5,6 +5,7 @@
 
 import { useHashLocation } from 'wouter/use-hash-location';
 import { useApp } from '@/contexts/AppContext';
+import { getIndustryProfile } from '@/services/industries';
 
 interface NavItem {
   id: string;
@@ -16,22 +17,26 @@ interface NavItem {
 
 export function Sidebar() {
   const [location, setLocation] = useHashLocation();
-  const { clients, products, leads } = useApp();
+  const { clients, products, leads, settings } = useApp();
+  
+  const industry = getIndustryProfile(settings.settings.industry || 'sourcing');
+  const terms = industry?.terminology;
+  const enabledModules = industry?.defaultModules || [];
 
   const navItems: NavItem[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊', path: '/' },
-    { id: 'clients', label: 'Clients', icon: '👥', path: '/clients', badge: clients.clients.length },
-    { id: 'products', label: 'Products', icon: '📦', path: '/products', badge: products.products.length },
-    { id: 'leads', label: 'Leads', icon: '🎯', path: '/leads', badge: leads.getOpenLeads().length },
-    { id: 'pipeline', label: 'Pipeline', icon: '🔄', path: '/pipeline' },
-    { id: 'invoices', label: 'Invoices', icon: '🧾', path: '/invoices' },
-  ];
+    { id: 'Dashboard', label: 'Dashboard', icon: '📊', path: '/' },
+    { id: 'Clients', label: terms?.clients || 'Clients', icon: '👥', path: '/clients', badge: clients.clients.length },
+    { id: 'Products', label: terms?.products || 'Products', icon: '📦', path: '/products', badge: products.products.length },
+    { id: 'Leads', label: terms?.leads || 'Leads', icon: '🎯', path: '/leads', badge: leads.getOpenLeads().length },
+    { id: 'Pipeline', label: 'Pipeline', icon: '🔄', path: '/pipeline' },
+    { id: 'Invoices', label: terms?.invoices || 'Invoices', icon: '🧾', path: '/invoices' },
+  ].filter(item => enabledModules.includes(item.id));
 
   const toolItems: NavItem[] = [
-    { id: 'currency', label: 'Currency', icon: '💱', path: '/currency' },
-    { id: 'export', label: 'Export', icon: '📥', path: '/export' },
-    { id: 'settings', label: 'Settings', icon: '⚙️', path: '/settings' },
-  ];
+    { id: 'Currency', label: 'Currency', icon: '💱', path: '/currency' },
+    { id: 'Export', label: 'Export', icon: '📥', path: '/export' },
+    { id: 'Settings', label: 'Settings', icon: '⚙️', path: '/settings' },
+  ].filter(item => enabledModules.includes(item.id));
 
   const isActive = (path: string) => location === path;
 

@@ -12,6 +12,7 @@ export interface Client {
   platform?: string;
   currency: string;
   notes?: string;
+  customData?: Record<string, any>;
   createdAt: number;
 }
 
@@ -33,6 +34,7 @@ export interface Product {
   note?: string;
   images?: string[];
   files?: string[];
+  customData?: Record<string, any>;
   createdAt: number;
 }
 
@@ -48,6 +50,7 @@ export interface Lead {
   source?: string;
   notes?: string;
   convertedToClientId?: string;
+  customData?: Record<string, any>;
   createdAt: number;
 }
 
@@ -91,6 +94,36 @@ export interface Settings {
   email: string;
   currency: string;
   invPrefix: string;
+  industry?: string;
+  isConfigured?: boolean;
+}
+
+export interface IndustryProfile {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  defaultModules: string[];
+  terminology: {
+    clients: string;
+    products: string;
+    leads: string;
+    invoices: string;
+  };
+  customFields: {
+    clients?: CustomFieldDefinition[];
+    products?: CustomFieldDefinition[];
+    leads?: CustomFieldDefinition[];
+  };
+}
+
+export interface CustomFieldDefinition {
+  id: string;
+  label: string;
+  type: 'text' | 'number' | 'date' | 'select' | 'currency';
+  options?: string[];
+  placeholder?: string;
+  required?: boolean;
 }
 
 export interface LicensePayload {

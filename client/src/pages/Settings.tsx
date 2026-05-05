@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { Layout } from '@/components/Layout';
+import { INDUSTRY_PROFILES } from '@/services/industries';
 
 export default function Settings() {
   const { settings } = useApp();
@@ -68,6 +69,22 @@ export default function Settings() {
                     placeholder="your@email.com"
                     className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">Industry (CRM Type)</label>
+                  <select
+                    value={formData.industry}
+                    onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
+                  >
+                    {INDUSTRY_PROFILES.map(p => (
+                      <option key={p.id} value={p.id}>{p.icon} {p.name}</option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Changing the industry will update terminology and available modules.
+                  </p>
                 </div>
               </div>
             </div>

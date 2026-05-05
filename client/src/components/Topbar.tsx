@@ -5,6 +5,8 @@
 
 import { useState } from 'react';
 import { useHashLocation } from 'wouter/use-hash-location';
+import { useApp } from '@/contexts/AppContext';
+import { getIndustryProfile } from '@/services/industries';
 
 interface TopbarProps {
   title?: string;
@@ -26,7 +28,23 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
 
 export function Topbar({ onSearch }: TopbarProps) {
   const [location] = useHashLocation();
+  const { settings } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
+
+  const industry = getIndustryProfile(settings.settings.industry || 'sourcing');
+  const terms = industry?.terminology;
+
+  const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
+    '/': { title: 'Dashboard', subtitle: 'Overview of your sourcing business' },
+    '/clients': { title: terms?.clients || 'Clients', subtitle: 'Manage client relationships' },
+    '/products': { title: terms?.products || 'Products', subtitle: 'All products across all clients' },
+    '/leads': { title: terms?.leads || 'Leads', subtitle: 'Quote requests and potential clients' },
+    '/pipeline': { title: 'Pipeline', subtitle: 'Sales pipeline view' },
+    '/invoices': { title: terms?.invoices || 'Invoices', subtitle: 'Professional invoice management' },
+    '/currency': { title: 'Currency', subtitle: 'Exchange rates & calculations' },
+    '/export': { title: 'Export', subtitle: 'Reports & data exports' },
+    '/settings': { title: 'Settings', subtitle: 'Configure your CRM' },
+  };
 
   const pageInfo = PAGE_TITLES[location] || { title: 'ProSource', subtitle: '' };
 

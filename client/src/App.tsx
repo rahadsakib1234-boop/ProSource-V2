@@ -4,7 +4,8 @@ import { Route, Switch, Router as WouterRouter } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import { AppProvider } from "./contexts/AppContext";
+import { AppProvider, useApp } from "./contexts/AppContext";
+import { OnboardingWizard } from "./components/OnboardingWizard";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -39,15 +40,37 @@ function Router() {
   );
 }
 
+function AppContent() {
+  const { settings } = useApp();
+
+  if (settings.loading) return null;
+
+  return (
+    <>
+      {!settings.settings.isConfigured && (
+        <OnboardingWizard 
+          onComplete={(industryId) => {
+            settings.updateSettings({ 
+              industry: industryId, 
+              isConfigured: true 
+            });
+          }} 
+        />
+      )}
+      <TooltipProvider>
+        <Toaster />
+        <Router />
+      </TooltipProvider>
+    </>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
         <AppProvider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
+          <AppContent />
         </AppProvider>
       </ThemeProvider>
     </ErrorBoundary>

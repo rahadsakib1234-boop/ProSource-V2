@@ -13,6 +13,8 @@ const DEFAULT_SETTINGS: Settings = {
   email: '',
   currency: 'BDT',
   invPrefix: 'INV-',
+  industry: 'sourcing',
+  isConfigured: false,
 };
 
 export function useSettings() {
