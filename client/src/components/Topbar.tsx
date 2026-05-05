@@ -4,7 +4,7 @@
  */
 
 import { useState } from 'react';
-import { useLocation } from 'wouter';
+import { useHashLocation } from 'wouter/use-hash-location';
 
 interface TopbarProps {
   title?: string;
@@ -25,7 +25,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
 };
 
 export function Topbar({ onSearch }: TopbarProps) {
-  const [location] = useLocation();
+  const [location] = useHashLocation();
   const [searchQuery, setSearchQuery] = useState('');
 
   const pageInfo = PAGE_TITLES[location] || { title: 'ProSource', subtitle: '' };

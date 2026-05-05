@@ -36,11 +36,11 @@ function createWindow() {
     icon: path.join(__dirname, '../assets/icon.png'),
   });
 
-  const startUrl = isDev
-    ? 'http://localhost:5173'
-    : `file://${path.join(__dirname, '../public/index.html')}`;
-
-  mainWindow.loadURL(startUrl);
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:5173');
+  } else {
+    mainWindow.loadFile(path.join(__dirname, '../public/index.html'));
+  }
 
   if (isDev) {
     mainWindow.webContents.openDevTools();

@@ -3,7 +3,7 @@
  * Main navigation sidebar with menu items
  */
 
-import { useLocation } from 'wouter';
+import { useHashLocation } from 'wouter/use-hash-location';
 import { useApp } from '@/contexts/AppContext';
 
 interface NavItem {
@@ -15,7 +15,7 @@ interface NavItem {
 }
 
 export function Sidebar() {
-  const [location, setLocation] = useLocation();
+  const [location, setLocation] = useHashLocation();
   const { clients, products, leads } = useApp();
 
   const navItems: NavItem[] = [

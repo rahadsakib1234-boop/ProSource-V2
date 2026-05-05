@@ -1,7 +1,7 @@
-import { useLocation } from 'wouter';
+import { useHashLocation } from 'wouter/use-hash-location';
 
 export default function NotFound() {
-  const [, setLocation] = useLocation();
+  const [, setLocation] = useHashLocation();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">

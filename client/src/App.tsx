@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Route, Switch } from "wouter";
+import { Route, Switch, Router as WouterRouter } from "wouter";
+import { useHashLocation } from "wouter/use-hash-location";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AppProvider } from "./contexts/AppContext";
@@ -19,7 +20,8 @@ import NotFound from "./pages/NotFound";
 
 function Router() {
   return (
-    <Switch>
+    <WouterRouter hook={useHashLocation}>
+      <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/clients" component={Clients} />
       <Route path="/products" component={Products} />
@@ -30,9 +32,10 @@ function Router() {
       <Route path="/export" component={Export} />
       <Route path="/settings" component={Settings} />
       <Route path="/404" component={NotFound} />
-      {/* Final fallback route */}
-      <Route component={NotFound} />
-    </Switch>
+        {/* Final fallback route */}
+        <Route component={NotFound} />
+      </Switch>
+    </WouterRouter>
   );
 }
 
