@@ -4,17 +4,22 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useHashLocation } from 'wouter/use-hash-location';
 import { useApp } from '@/contexts/AppContext';
 import { Layout } from '@/components/Layout';
 import { INDUSTRY_PROFILES } from '@/services/industries';
 import { syncService } from '@/services/syncService';
+import { BackupListModal } from '@/components/BackupListModal';
+import { alertService } from '@/services/alertService';
 
 export default function Settings() {
+  const [, setLocation] = useHashLocation();
   const { settings, auth } = useApp();
   const [formData, setFormData] = useState(settings.settings);
   const [saved, setSaved] = useState(false);
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
   const [backupMessage, setBackupMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [showBackupModal, setShowBackupModal] = useState(false);
 
   useEffect(() => {
     setFormData(settings.settings);
@@ -27,38 +32,34 @@ export default function Settings() {
   };
 
   const handleCreateBackup = async () => {
-    if (!auth.user) return;
-    
     setIsCreatingBackup(true);
     setBackupMessage(null);
     
     try {
       const result = await syncService.createBackup();
+      const filename = `prosource-backup-${new Date().toISOString().split('T')[0]}.enc`;
       setBackupMessage({
         type: 'success',
         text: `✓ Backup created successfully (${(result.size / 1024 / 1024).toFixed(2)} MB)`
       });
+      alertService.alertBackupCompleted(filename, result.size);
     } catch (error) {
       setBackupMessage({
         type: 'error',
         text: `✗ Backup failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       });
+      alertService.alertSyncFailed(error instanceof Error ? error.message : 'Backup creation failed');
     } finally {
       setIsCreatingBackup(false);
     }
   };
 
-  const handleListBackups = async () => {
-    try {
-      const result = await syncService.getBackups();
-      console.log('Backups:', result);
-      // TODO: Show backup list in modal
-    } catch (error) {
-      setBackupMessage({
-        type: 'error',
-        text: `Failed to fetch backups: ${error instanceof Error ? error.message : 'Unknown error'}`
-      });
-    }
+  const handleListBackups = () => {
+    setShowBackupModal(true);
+  };
+
+  const handleRestoreBackup = (backupId: string) => {
+    alertService.alertRestoreTriggered(`backup-${backupId}`);
   };
 
   return (
@@ -232,6 +233,22 @@ export default function Settings() {
           )}
         </div>
 
+        {/* Team Management */}
+        {auth.user?.role === 'admin' && (
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm max-w-2xl">
+            <h3 className="font-semibold text-foreground mb-4">👥 Team Management</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Manage employees, assign roles, and control team access to your CRM.
+            </p>
+            <button 
+              onClick={() => setLocation('/employees')}
+              className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg font-medium text-sm hover:bg-purple-700 transition-colors"
+            >
+              Manage Team Members
+            </button>
+          </div>
+        )}
+
         {/* Data Management */}
         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm max-w-2xl">
           <h3 className="font-semibold text-foreground mb-4">Local Data Management</h3>
@@ -248,6 +265,13 @@ export default function Settings() {
           </div>
         </div>
       </div>
+
+      {/* Backup List Modal */}
+      <BackupListModal 
+        isOpen={showBackupModal} 
+        onClose={() => setShowBackupModal(false)}
+        onRestore={handleRestoreBackup}
+      />
     </Layout>
   );
 }

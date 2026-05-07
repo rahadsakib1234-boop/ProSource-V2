@@ -19,6 +19,7 @@ import Currency from "./pages/Currency";
 import Export from "./pages/Export";
 import Settings from "./pages/Settings";
 import UserManagement from "./pages/UserManagement";
+import EmployeeManagement from "./pages/EmployeeManagement";
 import NotFound from "./pages/NotFound";
 
 function Router() {
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/export" component={Export} />
       <Route path="/settings" component={Settings} />
       <Route path="/users" component={UserManagement} />
+      <Route path="/employees" component={EmployeeManagement} />
       <Route path="/404" component={NotFound} />
         {/* Final fallback route */}
         <Route component={NotFound} />

@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useHashLocation } from 'wouter/use-hash-location';
 import { useApp } from '@/contexts/AppContext';
 import { getIndustryProfile } from '@/services/industries';
+import { NotificationPanel } from './NotificationPanel';
 
 interface TopbarProps {
   title?: string;
@@ -74,6 +75,11 @@ export function Topbar({ onSearch }: TopbarProps) {
           onChange={handleSearch}
           className="bg-transparent outline-none text-sm w-full"
         />
+      </div>
+
+      {/* Notifications */}
+      <div className="ml-4">
+        <NotificationPanel />
       </div>
     </div>
   );
