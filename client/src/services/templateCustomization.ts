@@ -2,6 +2,17 @@ import type { InvoiceBranding, Lead, Settings } from '@/types';
 import { getIndustryProfile } from './industries';
 import { getIndustryBlueprint } from './industryBlueprints';
 
+export const CORE_PLATFORM_SECTIONS = [
+  { id: 'Dashboard', label: 'Dashboard', description: 'Overview + KPIs' },
+  { id: 'CRM', label: 'CRM', description: 'Leads / clients / contacts' },
+  { id: 'Operations', label: 'Operations', description: 'Core business workflow' },
+  { id: 'Finance', label: 'Finance', description: 'Payments / revenue' },
+  { id: 'Team', label: 'Team', description: 'Staff / users' },
+  { id: 'Reports', label: 'Reports', description: 'Analytics' },
+  { id: 'Files', label: 'Files', description: 'Documents / media' },
+  { id: 'Settings', label: 'Settings', description: 'Workspace configuration' },
+] as const;
+
 export type ModuleId = 'Dashboard' | 'Clients' | 'Products' | 'Leads' | 'Pipeline' | 'Operations' | 'Finance' | 'Reports' | 'Files' | 'Team' | 'Settings' | 'Invoices' | 'Currency' | 'Export' | 'Users' | 'Employees';
 
 export const CORE_MODULE_IDS: ModuleId[] = ['Dashboard', 'Clients', 'Products', 'Leads', 'Pipeline', 'Operations', 'Finance', 'Reports', 'Files', 'Team', 'Settings'];
