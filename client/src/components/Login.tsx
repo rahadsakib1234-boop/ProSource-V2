@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { INDUSTRY_PROFILES } from '../services/industries';
+import { buildIndustryTemplateSettings } from '../services/templateCustomization';
 import { IndustryProfile } from '../types';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
@@ -31,11 +32,9 @@ export function Login() {
         return;
       }
 
-      const saved = settings.updateSettings({
-        industry: selectedIndustry,
-        isConfigured: true,
-        authEnabled: true,
-      });
+      const saved = settings.saveSettings(
+        buildIndustryTemplateSettings(settings.settings, selectedIndustry)
+      );
 
       if (!saved) {
         setError('Admin created, but industry settings could not be saved. You can change them later in Settings.');

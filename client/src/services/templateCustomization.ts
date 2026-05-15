@@ -63,3 +63,22 @@ export function getFieldLabel(settings: Settings | undefined, key: string, fallb
 export function getInvoiceBranding(settings?: Settings): InvoiceBranding {
   return settings?.invoiceBranding || {};
 }
+
+export function buildIndustryTemplateSettings(settings: Settings, industryId: string): Settings {
+  const profile = getIndustryProfile(industryId) || getIndustryProfile('sourcing');
+  const templateModuleIds = new Set(profile?.defaultModules || []);
+  const moduleVisibility = MODULE_OPTIONS.reduce<Partial<Record<ModuleId, boolean>>>((acc, mod) => {
+    acc[mod.id] = templateModuleIds.has(mod.id);
+    return acc;
+  }, {});
+
+  return {
+    ...settings,
+    industry: profile?.id || industryId || settings.industry || 'sourcing',
+    templateCustomization: {
+      stageLabels: {},
+      fieldLabels: {},
+      moduleVisibility,
+    },
+  };
+}

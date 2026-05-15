@@ -8,6 +8,7 @@ import { useHashLocation } from 'wouter/use-hash-location';
 import { useApp } from '@/contexts/AppContext';
 import { Layout } from '@/components/Layout';
 import { INDUSTRY_PROFILES } from '@/services/industries';
+import { buildIndustryTemplateSettings } from '@/services/templateCustomization';
 import { syncService } from '@/services/syncService';
 import { BackupListModal } from '@/components/BackupListModal';
 import { alertService } from '@/services/alertService';
@@ -30,6 +31,14 @@ export default function Settings() {
     settings.saveSettings(formData);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  };
+
+  const handleIndustryChange = (industryId: string) => {
+    const next = buildIndustryTemplateSettings(formData, industryId);
+    setFormData(next);
+    settings.saveSettings(next);
+    setSaved(true);
+    window.setTimeout(() => setSaved(false), 3000);
   };
 
   const handleCreateBackup = async () => {
@@ -115,7 +124,7 @@ export default function Settings() {
                   <label className="block text-sm font-medium text-foreground mb-1">Industry (CRM Type)</label>
                   <select
                     value={formData.industry}
-                    onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                    onChange={(e) => handleIndustryChange(e.target.value)}
                     className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent"
                   >
                     {INDUSTRY_PROFILES.map(p => (
@@ -123,7 +132,7 @@ export default function Settings() {
                     ))}
                   </select>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Changing the industry will update terminology and available modules.
+                    Changing the industry applies that template right away, and you can switch again later anytime.
                   </p>
                 </div>
               </div>
