@@ -8,6 +8,7 @@ import { useState, useMemo, useCallback, useRef } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { Layout } from '@/components/Layout';
 import { Lead } from '@/types';
+import { getStageLabel } from '@/services/templateCustomization';
 
 // ─── Industry Stage Configs ───────────────────────────────────────────────────
 
@@ -309,6 +310,10 @@ function LeadFormModal({ initial, onSave, onClose, stages }: LeadFormProps) {
 export default function Pipeline() {
   const { leads, settings } = useApp();
   const stages = useMemo(() => getStages(settings.settings.industry || 'default'), [settings.settings.industry]);
+  const customizedStages = useMemo(
+    () => stages.map((stage) => ({ ...stage, label: getStageLabel(settings.settings, stage.id, stage.label) })),
+    [settings.settings, stages]
+  );
 
   const [draggedLead, setDraggedLead] = useState<Lead | null>(null);
   const [overStage, setOverStage] = useState<Lead['status'] | null>(null);
@@ -328,11 +333,11 @@ export default function Pipeline() {
         )
       : leads.leads;
 
-    return stages.reduce((acc, stage) => {
+    return customizedStages.reduce((acc, stage) => {
       acc[stage.id] = filtered.filter(l => l.status === stage.id);
       return acc;
     }, {} as Record<string, Lead[]>);
-  }, [leads.leads, stages, filterText]);
+  }, [leads.leads, customizedStages, filterText]);
 
   const totalOpen = useMemo(
     () => leads.leads.filter(l => !['closed', 'lost'].includes(l.status)).length,
@@ -423,7 +428,7 @@ export default function Pipeline() {
 
         {/* Stage Summary Pills */}
         <div className="flex gap-2 flex-wrap">
-          {stages.map(stage => {
+          {customizedStages.map(stage => {
             const count = leadsByStage[stage.id]?.length ?? 0;
             return (
               <div key={stage.id} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border text-xs font-medium"
@@ -438,7 +443,7 @@ export default function Pipeline() {
 
         {/* Kanban Board */}
         <div className="flex gap-4 overflow-x-auto pb-4 flex-1">
-          {stages.map(stage => (
+          {customizedStages.map(stage => (
             <div
               key={stage.id}
               onDragEnter={() => handleDragEnter(stage.id)}
@@ -477,7 +482,7 @@ export default function Pipeline() {
       {/* Add Lead Modal */}
       {showForm && (
         <LeadFormModal
-          stages={stages}
+          stages={customizedStages}
           onSave={handleSaveLead}
           onClose={() => setShowForm(false)}
         />
@@ -487,7 +492,7 @@ export default function Pipeline() {
       {editingLead && (
         <LeadFormModal
           initial={editingLead}
-          stages={stages}
+          stages={customizedStages}
           onSave={data => handleSaveLead({ ...editingLead, ...data })}
           onClose={() => setEditingLead(null)}
         />

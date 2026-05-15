@@ -11,6 +11,7 @@ import { INDUSTRY_PROFILES } from '@/services/industries';
 import { syncService } from '@/services/syncService';
 import { BackupListModal } from '@/components/BackupListModal';
 import { alertService } from '@/services/alertService';
+import { TemplateCustomizationPanel } from '@/components/TemplateCustomizationPanel';
 
 export default function Settings() {
   const [, setLocation] = useHashLocation();
@@ -165,6 +166,8 @@ export default function Settings() {
                 </div>
               </div>
             </div>
+
+            <TemplateCustomizationPanel value={formData} onChange={setFormData} />
 
             {/* About */}
             <div className="border-t border-border pt-6">

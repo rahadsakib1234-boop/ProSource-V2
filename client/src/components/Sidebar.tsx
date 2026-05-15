@@ -6,6 +6,7 @@
 import { useHashLocation } from 'wouter/use-hash-location';
 import { useApp } from '@/contexts/AppContext';
 import { getIndustryProfile } from '@/services/industries';
+import { isModuleVisible } from '@/services/templateCustomization';
 import { SyncStatusIndicator } from './SyncStatusIndicator';
 
 interface NavItem {
@@ -33,7 +34,9 @@ export function Sidebar() {
     { id: 'Leads', label: terms?.leads || 'Leads', icon: '🎯', path: '/leads', badge: leads.getOpenLeads().length },
     { id: 'Pipeline', label: 'Pipeline', icon: '🔄', path: '/pipeline' },
     ...(isAdmin ? [{ id: 'Invoices', label: terms?.invoices || 'Invoices', icon: '🧾', path: '/invoices' }] : []),
-  ].filter(item => enabledModules.includes(item.id));
+  ]
+    .filter(item => enabledModules.includes(item.id))
+    .filter(item => isModuleVisible(settings.settings, item.id));
 
   const toolItems: NavItem[] = [
     ...(isAdmin ? [
@@ -42,7 +45,9 @@ export function Sidebar() {
       { id: 'Settings', label: 'Settings', icon: '⚙️', path: '/settings' },
       { id: 'Users', label: 'Team', icon: '👥', path: '/users' }
     ] : []),
-  ].filter(item => enabledModules.includes(item.id));
+  ]
+    .filter(item => enabledModules.includes(item.id))
+    .filter(item => isModuleVisible(settings.settings, item.id));
 
   const isActive = (path: string) => location === path;
 

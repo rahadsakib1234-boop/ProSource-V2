@@ -8,6 +8,8 @@ import { useApp } from '@/contexts/AppContext';
 import { Layout } from '@/components/Layout';
 import { Invoice } from '@/types';
 import { formatCurrency } from '@/services/currency';
+import { getFieldLabel } from '@/services/templateCustomization';
+import { openInvoicePrintWindow } from '@/services/invoicePrint';
 
 export default function Invoices() {
   const { invoices, clients, settings } = useApp();
@@ -25,6 +27,8 @@ export default function Invoices() {
   const filteredInvoices = useMemo(() => {
     return invoices.searchInvoices(searchQuery);
   }, [searchQuery, invoices.invoices]);
+
+  const field = (key: string, fallback: string) => getFieldLabel(settings.settings, key, fallback);
 
   const handleAddInvoice = async () => {
   if (!formData.num || !formData.clientId) return;
@@ -84,6 +88,11 @@ export default function Invoices() {
     } catch (err) {
       console.error('Failed to update invoice status:', err);
     }
+  };
+
+  const handlePrintInvoice = (invoice: Invoice) => {
+    const client = clients.getClientById(invoice.clientId);
+    openInvoicePrintWindow(invoice, client, settings.settings);
   };
 
   const getStatusColor = (status: string) => {
@@ -150,9 +159,9 @@ export default function Invoices() {
             <table className="w-full text-sm">
               <thead className="bg-secondary border-b border-border">
                 <tr>
-                  <th className="px-6 py-3 text-left font-semibold text-foreground">Invoice #</th>
+                  <th className="px-6 py-3 text-left font-semibold text-foreground">{field('invoice.number', 'Invoice #')}</th>
                   <th className="px-6 py-3 text-left font-semibold text-foreground">Client</th>
-                  <th className="px-6 py-3 text-left font-semibold text-foreground">Issue Date</th>
+                  <th className="px-6 py-3 text-left font-semibold text-foreground">{field('invoice.issueDate', 'Issue Date')}</th>
                   <th className="px-6 py-3 text-left font-semibold text-foreground">Amount</th>
                   <th className="px-6 py-3 text-left font-semibold text-foreground">Status</th>
                   <th className="px-6 py-3 text-left font-semibold text-foreground">Action</th>
@@ -186,12 +195,20 @@ export default function Invoices() {
                         </select>
                       </td>
                       <td className="px-6 py-3">
-                        <button
-                          onClick={() => handleDeleteInvoice(invoice.id)}
-                          className="text-xs px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
-                        >
-                          Delete
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handlePrintInvoice(invoice)}
+                            className="text-xs px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
+                          >
+                            PDF / Print
+                          </button>
+                          <button
+                            onClick={() => handleDeleteInvoice(invoice.id)}
+                            className="text-xs px-3 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -214,7 +231,7 @@ export default function Invoices() {
               <h2 className="text-lg font-bold text-foreground mb-4">Create New Invoice</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Invoice #</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">{field('invoice.number', 'Invoice #')}</label>
                   <input
                     type="text"
                     placeholder={`${settings.settings.invPrefix}001`}
@@ -241,7 +258,7 @@ export default function Invoices() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Issue Date</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">{field('invoice.issueDate', 'Issue Date')}</label>
                   <input
                     type="date"
                     value={formData.issueDate || ''}
@@ -251,7 +268,7 @@ export default function Invoices() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-1">Due Date</label>
+                  <label className="block text-sm font-medium text-foreground mb-1">{field('invoice.dueDate', 'Due Date')}</label>
                   <input
                     type="date"
                     value={formData.dueDate || ''}
@@ -283,7 +300,7 @@ export default function Invoices() {
                 </div>
 
                 <div>
-  <label className="block text-sm font-medium text-foreground mb-1">Discount Amount</label>
+  <label className="block text-sm font-medium text-foreground mb-1">{field('invoice.discount', 'Discount Amount')}</label>
   <input
     type="number"
     placeholder="0"
@@ -294,7 +311,7 @@ export default function Invoices() {
 </div>
 
                <div>
-  <label className="block text-sm font-medium text-foreground mb-1">Tax Amount</label>
+  <label className="block text-sm font-medium text-foreground mb-1">{field('invoice.tax', 'Tax Amount')}</label>
   <input
     type="number"
     placeholder="0"

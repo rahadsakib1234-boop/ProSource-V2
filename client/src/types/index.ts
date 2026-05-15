@@ -97,6 +97,24 @@ export interface Settings {
   industry?: string;
   isConfigured?: boolean;
   authEnabled?: boolean;
+  templateCustomization?: TemplateCustomization;
+  invoiceBranding?: InvoiceBranding;
+}
+
+export interface TemplateCustomization {
+  stageLabels?: Partial<Record<'new' | 'contacted' | 'negotiating' | 'closed' | 'lost', string>>;
+  fieldLabels?: Record<string, string>;
+  moduleVisibility?: Partial<Record<string, boolean>>;
+}
+
+export interface InvoiceBranding {
+  businessName?: string;
+  logoUrl?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  footerNote?: string;
 }
 
 export interface User {

@@ -15,6 +15,13 @@ const DEFAULT_SETTINGS: Settings = {
   invPrefix: 'INV-',
   industry: 'sourcing',
   isConfigured: false,
+  authEnabled: false,
+  templateCustomization: {
+    stageLabels: {},
+    fieldLabels: {},
+    moduleVisibility: {},
+  },
+  invoiceBranding: {},
 };
 
 export function useSettings() {
@@ -25,7 +32,19 @@ export function useSettings() {
     try {
       const stored = localStorage.getItem(SETTINGS_KEY);
       if (stored) {
-        setSettings(JSON.parse(stored));
+        const parsed = JSON.parse(stored) as Settings;
+        setSettings({
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          templateCustomization: {
+            ...DEFAULT_SETTINGS.templateCustomization,
+            ...(parsed.templateCustomization || {}),
+          },
+          invoiceBranding: {
+            ...DEFAULT_SETTINGS.invoiceBranding,
+            ...(parsed.invoiceBranding || {}),
+          },
+        });
       }
     } catch (err) {
       console.error('Failed to load settings:', err);
@@ -36,8 +55,20 @@ export function useSettings() {
 
   const saveSettings = useCallback((newSettings: Settings) => {
     try {
-      setSettings(newSettings);
-      localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+      const normalized: Settings = {
+        ...DEFAULT_SETTINGS,
+        ...newSettings,
+        templateCustomization: {
+          ...DEFAULT_SETTINGS.templateCustomization,
+          ...(newSettings.templateCustomization || {}),
+        },
+        invoiceBranding: {
+          ...DEFAULT_SETTINGS.invoiceBranding,
+          ...(newSettings.invoiceBranding || {}),
+        },
+      };
+      setSettings(normalized);
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(normalized));
       return true;
     } catch (err) {
       console.error('Failed to save settings:', err);

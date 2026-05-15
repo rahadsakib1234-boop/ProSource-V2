@@ -6,7 +6,7 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
     name: 'General Sourcing',
     description: 'Perfect for sourcing agents, trading businesses, and procurement specialists.',
     icon: '📦',
-    defaultModules: ['Dashboard', 'Clients', 'Products', 'Leads', 'Invoices', 'Currency'],
+    defaultModules: ['Dashboard', 'Clients', 'Products', 'Leads', 'Pipeline', 'Invoices', 'Currency', 'Export', 'Settings'],
     terminology: {
       clients: 'Clients',
       products: 'Products',
@@ -14,14 +14,26 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
       invoices: 'Invoices',
     },
     customFields: {
+      clients: [
+        { id: 'preferred_contact', label: 'Preferred Contact Method', type: 'select', options: ['WhatsApp', 'Email', 'Phone', 'WeChat', 'Other'] },
+        { id: 'source_country', label: 'Source Country', type: 'text', placeholder: 'China, Vietnam, Turkey...' },
+        { id: 'target_market', label: 'Target Market', type: 'text', placeholder: 'Bangladesh, EU, USA...' },
+      ],
       products: [
         { id: 'supplier', label: 'Supplier Name', type: 'text', placeholder: 'Enter supplier name' },
-        { id: 'link', label: 'Product Link', type: 'text', placeholder: 'https://...' },
+        { id: 'supplier_country', label: 'Supplier Country', type: 'text' },
+        { id: 'product_link', label: 'Product Link', type: 'text', placeholder: 'https://...' },
         { id: 'tracking', label: 'Tracking Number', type: 'text' },
+        { id: 'hs_code', label: 'HS Code', type: 'text' },
+        { id: 'moq', label: 'MOQ', type: 'number' },
+        { id: 'lead_time', label: 'Lead Time (days)', type: 'number' },
+        { id: 'quality_status', label: 'Quality Status', type: 'select', options: ['Pending', 'Sample Approved', 'Production Approved', 'Rejected'] },
       ],
       leads: [
-        { id: 'source', label: 'Lead Source', type: 'select', options: ['Website', 'Referral', 'Social Media', 'Other'] },
+        { id: 'source', label: 'Lead Source', type: 'select', options: ['Website', 'Referral', 'Social Media', 'Trade Show', 'WhatsApp', 'Other'] },
         { id: 'country', label: 'Target Country', type: 'text' },
+        { id: 'stage', label: 'Lead Stage', type: 'select', options: ['New', 'Contacted', 'Negotiating', 'Sample Requested', 'Closed', 'Lost'] },
+        { id: 'required_products', label: 'Required Products', type: 'text' },
       ]
     }
   },
@@ -30,7 +42,7 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
     name: 'Real Estate',
     description: 'Manage property listings, buyer inquiries, and transaction pipelines.',
     icon: '🏠',
-    defaultModules: ['Dashboard', 'Clients', 'Products', 'Leads', 'Invoices'],
+    defaultModules: ['Dashboard', 'Clients', 'Products', 'Leads', 'Pipeline', 'Invoices', 'Export', 'Settings'],
     terminology: {
       clients: 'Buyers & Sellers',
       products: 'Properties',
@@ -54,7 +66,7 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
     name: 'Healthcare & Life Sciences',
     description: 'HIPAA-compliant security, patient coordination, and care management.',
     icon: '🏥',
-    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Invoices'],
+    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Pipeline', 'Invoices', 'Export'],
     terminology: {
       clients: 'Patients',
       products: 'Care Plans',
@@ -73,7 +85,7 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
     name: 'Finance & Insurance',
     description: 'Portfolio tracking, policy management, and regulatory compliance.',
     icon: '💰',
-    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Invoices'],
+    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Pipeline', 'Invoices', 'Export'],
     terminology: {
       clients: 'Policy Holders',
       products: 'Financial Products',
@@ -92,7 +104,7 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
     name: 'Retail & E-commerce',
     description: 'Omnichannel experiences, inventory sync, and customer purchase history.',
     icon: '🛒',
-    defaultModules: ['Dashboard', 'Clients', 'Products', 'Invoices'],
+    defaultModules: ['Dashboard', 'Clients', 'Products', 'Invoices', 'Export'],
     terminology: {
       clients: 'Customers',
       products: 'Catalog Items',
@@ -111,7 +123,7 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
     name: 'Education & Training',
     description: 'Student lifecycle management from prospect to alumni and enrollment.',
     icon: '🎓',
-    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Invoices'],
+    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Invoices', 'Export'],
     terminology: {
       clients: 'Students',
       products: 'Courses',
@@ -130,7 +142,7 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
     name: 'Professional Services',
     description: 'Project-based billing, time tracking, and matter management.',
     icon: '⚖️',
-    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Invoices'],
+    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Pipeline', 'Invoices', 'Export'],
     terminology: {
       clients: 'Clients',
       products: 'Service Packages',
@@ -149,7 +161,7 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
     name: 'Manufacturing & Distribution',
     description: 'Supply chain visibility, B2B order processes, and inventory tracking.',
     icon: '🏭',
-    defaultModules: ['Dashboard', 'Clients', 'Products', 'Invoices'],
+    defaultModules: ['Dashboard', 'Clients', 'Products', 'Invoices', 'Export'],
     terminology: {
       clients: 'Distributors',
       products: 'Inventory Items',
@@ -168,7 +180,7 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
     name: 'Fitness & Wellness',
     description: 'Memberships, class scheduling, and high-frequency engagement.',
     icon: '🧘',
-    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Invoices'],
+    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Invoices', 'Export'],
     terminology: {
       clients: 'Members',
       products: 'Membership Plans',
@@ -187,7 +199,7 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
     name: 'Nonprofits',
     description: 'Donor management, fundraising campaigns, and impact reporting.',
     icon: '🤝',
-    defaultModules: ['Dashboard', 'Clients', 'Leads'],
+    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Export'],
     terminology: {
       clients: 'Donors',
       products: 'Programs',
