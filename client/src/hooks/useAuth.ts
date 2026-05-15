@@ -13,12 +13,21 @@ function fallbackHash(input: string): string {
   return `fallback_${(hash >>> 0).toString(16).padStart(8, '0')}`;
 }
 
+function createId(): string {
+  const cryptoObj = globalThis.crypto;
+  if (cryptoObj?.randomUUID) {
+    return cryptoObj.randomUUID();
+  }
+  return `usr_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+}
+
 async function hashPassword(password: string): Promise<string> {
   try {
-    if (globalThis.crypto?.subtle) {
+    const cryptoObj = globalThis.crypto;
+    if (cryptoObj?.subtle) {
       const encoder = new TextEncoder();
       const data = encoder.encode(password);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashBuffer = await cryptoObj.subtle.digest('SHA-256', data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
@@ -79,7 +88,7 @@ export function useAuth() {
 
       const passwordHash = await hashPassword(password);
       const admin: User = {
-        id: crypto.randomUUID(),
+        id: createId(),
         username,
         passwordHash,
         role: 'admin',
@@ -103,7 +112,7 @@ export function useAuth() {
 
       const passwordHash = await hashPassword(password);
       const newUser: User = {
-        id: crypto.randomUUID(),
+        id: createId(),
         username,
         passwordHash,
         role,
