@@ -2,19 +2,27 @@ import type { InvoiceBranding, Lead, Settings } from '@/types';
 import { getIndustryProfile } from './industries';
 import { getIndustryBlueprint } from './industryBlueprints';
 
-export type ModuleId = 'Dashboard' | 'Clients' | 'Products' | 'Leads' | 'Pipeline' | 'Invoices' | 'Currency' | 'Export' | 'Settings' | 'Users';
+export type ModuleId = 'Dashboard' | 'Clients' | 'Products' | 'Leads' | 'Pipeline' | 'Operations' | 'Finance' | 'Reports' | 'Files' | 'Team' | 'Settings' | 'Invoices' | 'Currency' | 'Export' | 'Users' | 'Employees';
+
+export const CORE_MODULE_IDS: ModuleId[] = ['Dashboard', 'Clients', 'Products', 'Leads', 'Pipeline', 'Operations', 'Finance', 'Reports', 'Files', 'Team', 'Settings'];
 
 export const MODULE_OPTIONS: { id: ModuleId; label: string; description: string }[] = [
   { id: 'Dashboard', label: 'Dashboard', description: 'Overview and business metrics' },
-  { id: 'Clients', label: 'Clients', description: 'Customer or buyer records' },
+  { id: 'Clients', label: 'CRM', description: 'Customer, contact, and partner records' },
   { id: 'Products', label: 'Products', description: 'Items, offers, or listings' },
   { id: 'Leads', label: 'Leads', description: 'Incoming opportunities' },
-  { id: 'Pipeline', label: 'Pipeline', description: 'Kanban-style deal tracking' },
+  { id: 'Pipeline', label: 'Pipeline', description: 'Deal and workflow tracking' },
+  { id: 'Operations', label: 'Operations', description: 'Core business workflow' },
+  { id: 'Finance', label: 'Finance', description: 'Payments and revenue' },
+  { id: 'Reports', label: 'Reports', description: 'Analytics and business intelligence' },
+  { id: 'Files', label: 'Files', description: 'Documents and media' },
+  { id: 'Team', label: 'Team', description: 'Staff and users' },
+  { id: 'Settings', label: 'Settings', description: 'Workspace configuration' },
   { id: 'Invoices', label: 'Invoices', description: 'Billing and payment tracking' },
   { id: 'Currency', label: 'Currency', description: 'Exchange rate tools' },
   { id: 'Export', label: 'Export', description: 'Backup and data exports' },
-  { id: 'Settings', label: 'Settings', description: 'Business and template setup' },
-  { id: 'Users', label: 'Team', description: 'User and employee management' },
+  { id: 'Users', label: 'Users', description: 'User access management' },
+  { id: 'Employees', label: 'Employees', description: 'Employee records' },
 ];
 
 export const STAGE_OPTIONS: { id: Lead['status']; label: string; hint: string }[] = [
@@ -74,8 +82,9 @@ export function buildIndustryTemplateSettings(settings: Settings, industryId: st
   const profile = getIndustryProfile(industryId) || getIndustryProfile('sourcing');
   const blueprint = getIndustryBlueprint(profile?.id || industryId || 'sourcing');
   const templateModuleIds = new Set(profile?.defaultModules || []);
+  const coreModuleIds = new Set<ModuleId>(CORE_MODULE_IDS);
   const moduleVisibility = MODULE_OPTIONS.reduce<Partial<Record<ModuleId, boolean>>>((acc, mod) => {
-    acc[mod.id] = templateModuleIds.has(mod.id);
+    acc[mod.id] = coreModuleIds.has(mod.id) || templateModuleIds.has(mod.id);
     return acc;
   }, {});
 

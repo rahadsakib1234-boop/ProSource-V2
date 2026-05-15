@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from 'react';
-import { FIELD_LABEL_OPTIONS, MODULE_OPTIONS, STAGE_OPTIONS } from '@/services/templateCustomization';
+import { FIELD_LABEL_OPTIONS, MODULE_OPTIONS, STAGE_OPTIONS, CORE_MODULE_IDS } from '@/services/templateCustomization';
 import type { Settings } from '@/types';
 
 interface TemplateCustomizationPanelProps {
@@ -56,14 +56,15 @@ export function TemplateCustomizationPanel({ value, onChange }: TemplateCustomiz
                   type="checkbox"
                   className="mt-1"
                   checked={moduleVisibility[mod.id] !== false}
-                  onChange={(e) =>
+                  onChange={(e) => {
+                    if (CORE_MODULE_IDS.includes(mod.id as any) && !e.target.checked) return;
                     updateCustomization({
                       moduleVisibility: {
                         ...moduleVisibility,
                         [mod.id]: e.target.checked,
                       },
                     })
-                  }
+                  }}
                 />
                 <span>
                   <span className="block text-sm font-medium text-foreground">{mod.label}</span>

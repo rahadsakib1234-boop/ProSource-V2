@@ -34,6 +34,8 @@ function Router() {
       <Route path="/invoices" component={Invoices} />
       <Route path="/currency" component={Currency} />
       <Route path="/export" component={Export} />
+      <Route path="/reports" component={Export} />
+      <Route path="/files" component={Export} />
       <Route path="/settings" component={Settings} />
       <Route path="/users" component={UserManagement} />
       <Route path="/employees" component={EmployeeManagement} />

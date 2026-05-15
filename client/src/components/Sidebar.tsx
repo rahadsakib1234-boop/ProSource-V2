@@ -23,31 +23,26 @@ export function Sidebar() {
   
   const industry = getIndustryProfile(settings.settings.industry || 'sourcing');
   const terms = industry?.terminology;
-  const enabledModules = industry?.defaultModules || [];
 
   const isAdmin = auth.user?.role === 'admin';
 
   const navItems: NavItem[] = [
     { id: 'Dashboard', label: 'Dashboard', icon: '📊', path: '/' },
-    { id: 'Clients', label: terms?.clients || 'Clients', icon: '👥', path: '/clients', badge: clients.clients.length },
+    { id: 'Clients', label: terms?.clients || 'CRM', icon: '👥', path: '/clients', badge: clients.clients.length },
     { id: 'Products', label: terms?.products || 'Products', icon: '📦', path: '/products', badge: products.products.length },
     { id: 'Leads', label: terms?.leads || 'Leads', icon: '🎯', path: '/leads', badge: leads.getOpenLeads().length },
-    { id: 'Pipeline', label: 'Pipeline', icon: '🔄', path: '/pipeline' },
-    ...(isAdmin ? [{ id: 'Invoices', label: terms?.invoices || 'Invoices', icon: '🧾', path: '/invoices' }] : []),
+    { id: 'Pipeline', label: 'Operations', icon: '🔄', path: '/pipeline' },
+    { id: 'Invoices', label: terms?.invoices || 'Finance', icon: '🧾', path: '/invoices' },
+    { id: 'Users', label: 'Team', icon: '👥', path: '/users' },
+    { id: 'Reports', label: 'Reports', icon: '📈', path: '/export' },
+    { id: 'Files', label: 'Files', icon: '🗂️', path: '/export' },
+    { id: 'Settings', label: 'Settings', icon: '⚙️', path: '/settings' },
   ]
-    .filter(item => enabledModules.includes(item.id))
-    .filter(item => isModuleVisible(settings.settings, item.id));
-
-  const toolItems: NavItem[] = [
-    ...(isAdmin ? [
-      { id: 'Currency', label: 'Currency', icon: '💱', path: '/currency' },
-      { id: 'Export', label: 'Export', icon: '📥', path: '/export' },
-      { id: 'Settings', label: 'Settings', icon: '⚙️', path: '/settings' },
-      { id: 'Users', label: 'Team', icon: '👥', path: '/users' }
-    ] : []),
-  ]
-    .filter(item => enabledModules.includes(item.id))
-    .filter(item => isModuleVisible(settings.settings, item.id));
+    .filter(item => isModuleVisible(settings.settings, item.id))
+    .filter(item => {
+      if (item.id === 'Users') return isAdmin;
+      return true;
+    });
 
   const isActive = (path: string) => location === path;
 
@@ -72,7 +67,6 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="sidebar-nav">
-        {/* Main Section */}
         <div className="nav-section-label">Main</div>
         {navItems.map((item) => (
           <button
@@ -87,27 +81,12 @@ export function Sidebar() {
             )}
           </button>
         ))}
-
-        {/* Tools Section */}
-        <div className="nav-section-label mt-6">Tools</div>
-        {toolItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => setLocation(item.path)}
-            className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
-          >
-            <span className="nav-icon">{item.icon}</span>
-            <span className="flex-1">{item.label}</span>
-          </button>
-        ))}
       </nav>
 
-      {/* Sync Status */}
       <div className="border-t border-white/10 px-3 py-3">
         <SyncStatusIndicator />
       </div>
 
-      {/* Footer */}
       <div className="border-t border-white/10 px-3 py-3 text-xs text-sidebar-foreground/40 font-mono">
         v2.0.0
       </div>
