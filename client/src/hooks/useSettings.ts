@@ -79,7 +79,7 @@ export function useSettings() {
   const updateSettings = useCallback(
     (updates: Partial<Settings>) => {
       const updated = { ...settings, ...updates };
-      return saveSettings(updated);
+      return saveSettings(updated as Settings);
     },
     [settings, saveSettings]
   );

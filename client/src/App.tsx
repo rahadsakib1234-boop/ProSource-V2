@@ -5,7 +5,6 @@ import { useHashLocation } from "wouter/use-hash-location";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AppProvider, useApp } from "./contexts/AppContext";
-import { OnboardingWizard } from "./components/OnboardingWizard";
 import { Login } from "./components/Login";
 
 // Pages
@@ -63,20 +62,6 @@ function AppContent() {
 
   if (!auth.isAuthenticated) {
     return <Login />;
-  }
-
-  if (!settings.settings.isConfigured) {
-    return (
-      <OnboardingWizard 
-        onComplete={(industryId) => {
-          settings.updateSettings({ 
-            industry: industryId, 
-            isConfigured: true,
-            authEnabled: true
-          });
-        }} 
-      />
-    );
   }
 
   return (
