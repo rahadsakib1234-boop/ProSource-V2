@@ -4,6 +4,7 @@
  */
 
 import { useState } from 'react';
+import { LogOut, UserCircle2 } from 'lucide-react';
 import { useHashLocation } from 'wouter/use-hash-location';
 import { useApp } from '@/contexts/AppContext';
 import { getIndustryProfile } from '@/services/industries';
@@ -29,7 +30,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
 
 export function Topbar({ onSearch }: TopbarProps) {
   const [location] = useHashLocation();
-  const { settings } = useApp();
+  const { settings, auth } = useApp();
   const [searchQuery, setSearchQuery] = useState('');
 
   const industry = getIndustryProfile(settings.settings.industry || 'sourcing');
@@ -65,21 +66,38 @@ export function Topbar({ onSearch }: TopbarProps) {
         </div>
       </div>
 
-      {/* Search */}
-      <div className="search-global">
-        <span className="search-icon">🔍</span>
-        <input
-          type="text"
-          placeholder="Search..."
-          value={searchQuery}
-          onChange={handleSearch}
-          className="bg-transparent outline-none text-sm w-full"
-        />
-      </div>
+      <div className="flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground">
+          <UserCircle2 className="h-4 w-4" />
+          <span>{auth.user?.username || 'Signed in'}</span>
+        </div>
 
-      {/* Notifications */}
-      <div className="ml-4">
-        <NotificationPanel />
+        <button
+          type="button"
+          onClick={() => auth.logout()}
+          className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-xs font-medium text-foreground transition hover:bg-secondary"
+          title="Sign out"
+        >
+          <LogOut className="h-4 w-4" />
+          Sign out
+        </button>
+
+        {/* Search */}
+        <div className="search-global">
+          <span className="search-icon">🔍</span>
+          <input
+            type="text"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="bg-transparent outline-none text-sm w-full"
+          />
+        </div>
+
+        {/* Notifications */}
+        <div className="ml-4">
+          <NotificationPanel />
+        </div>
       </div>
     </div>
   );

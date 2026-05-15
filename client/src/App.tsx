@@ -59,13 +59,10 @@ function AppContent() {
     );
   }
 
-  // 1. Force Admin Setup or Login
-  const hasUsers = auth.getUsers().length > 0;
-  if (!auth.isAuthenticated && (settings.settings.authEnabled || !hasUsers)) {
+  if (!auth.isAuthenticated) {
     return <Login />;
   }
 
-  // 2. Initial Setup if not configured
   if (!settings.settings.isConfigured) {
     return (
       <OnboardingWizard 
@@ -73,7 +70,7 @@ function AppContent() {
           settings.updateSettings({ 
             industry: industryId, 
             isConfigured: true,
-            authEnabled: true // Enable auth by default after first setup
+            authEnabled: true
           });
         }} 
       />
