@@ -99,6 +99,14 @@ export interface Settings {
   authEnabled?: boolean;
   templateCustomization?: TemplateCustomization;
   invoiceBranding?: InvoiceBranding;
+  dashboardBlueprint?: string[];
+  crmBlueprint?: string[];
+  operationsBlueprint?: string[];
+  financeBlueprint?: string[];
+  reportsBlueprint?: string[];
+  kpiBlueprint?: string[];
+  workflowBlueprint?: string[];
+  actionBlueprint?: string[];
 }
 
 export interface TemplateCustomization {
@@ -130,6 +138,17 @@ export interface User {
 export interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
+}
+
+export interface IndustryBlueprint {
+  dashboard: string[];
+  crm: string[];
+  operations: string[];
+  finance: string[];
+  reports: string[];
+  kpis: string[];
+  workflows: string[];
+  actions: string[];
 }
 
 export interface IndustryProfile {

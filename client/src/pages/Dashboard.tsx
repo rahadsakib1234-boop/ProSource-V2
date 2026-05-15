@@ -7,10 +7,13 @@ import { useApp } from '@/contexts/AppContext';
 import { Layout } from '@/components/Layout';
 import { StatCard } from '@/components/StatCard';
 import { formatCurrency } from '@/services/currency';
+import { getActiveIndustryProfile, getActiveIndustryBlueprint } from '@/services/templateCustomization';
 
 export default function Dashboard() {
   const { clients, products, leads, invoices, settings, auth } = useApp();
   const isAdmin = auth.user?.role === 'admin';
+  const industry = getActiveIndustryProfile(settings.settings);
+  const blueprint = getActiveIndustryBlueprint(settings.settings);
 
   const totalRevenue = invoices.getTotalRevenue();
   const paidAmount = invoices.getPaidAmount();
@@ -23,6 +26,19 @@ export default function Dashboard() {
   return (
     <Layout>
       <div className="space-y-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-sm text-muted-foreground mt-1">
+              {industry?.icon} {industry?.name || 'Industry'} template active
+            </p>
+          </div>
+          <div className="rounded-2xl border border-border bg-card px-4 py-3 text-right">
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Workflow</div>
+            <div className="text-sm font-semibold text-foreground">{blueprint.workflows[0] || 'Default CRM flow'}</div>
+          </div>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
@@ -54,40 +70,76 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Revenue Overview */}
-        <div className={`grid grid-cols-1 ${isAdmin ? 'lg:grid-cols-3' : 'lg:grid-cols-1'} gap-4`}>
-          {isAdmin && (
-            <>
-              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-                <h3 className="text-sm font-semibold text-foreground mb-4">Paid Invoices</h3>
-                <div className="text-3xl font-bold text-green-600 font-mono">
-                  {formatCurrency(paidAmount, settings.settings.currency)}
-                </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {invoices.filterByPayStatus('paid').length} invoices
-                </p>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+            <h3 className="text-sm font-semibold text-foreground mb-4">Dashboard KPIs</h3>
+            <div className="flex flex-wrap gap-2">
+              {blueprint.kpis.map((item) => (
+                <span key={item} className="rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs text-foreground">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+            <h3 className="text-sm font-semibold text-foreground mb-4">CRM Sections</h3>
+            <div className="flex flex-wrap gap-2">
+              {blueprint.crm.map((item) => (
+                <span key={item} className="rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs text-foreground">{item}</span>
+              ))}
+            </div>
+          </div>
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+            <h3 className="text-sm font-semibold text-foreground mb-4">Automation Actions</h3>
+            <div className="flex flex-wrap gap-2">
+              {blueprint.actions.map((item) => (
+                <span key={item} className="rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs text-foreground">{item}</span>
+              ))}
+            </div>
+          </div>
+        </div>
 
-              <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-                <h3 className="text-sm font-semibold text-foreground mb-4">Unpaid Invoices</h3>
-                <div className="text-3xl font-bold text-orange-600 font-mono">
-                  {formatCurrency(unpaidAmount, settings.settings.currency)}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+            <h3 className="text-sm font-semibold text-foreground mb-4">Operations & Finance</h3>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Operations</p>
+                <div className="flex flex-wrap gap-2">
+                  {blueprint.operations.map((item) => (
+                    <span key={item} className="rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs text-foreground">{item}</span>
+                  ))}
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">
-                  {invoices.filterByPayStatus('unpaid').length + invoices.filterByPayStatus('partial').length} invoices
-                </p>
               </div>
-            </>
-          )}
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Finance</p>
+                <div className="flex flex-wrap gap-2">
+                  {blueprint.finance.map((item) => (
+                    <span key={item} className="rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs text-foreground">{item}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
-            <h3 className="text-sm font-semibold text-foreground mb-4">Pending Products</h3>
-            <div className="text-3xl font-bold text-blue-600 font-mono">
-              {products.filterByStatus('pending').length}
+            <h3 className="text-sm font-semibold text-foreground mb-4">Reports & Workflow</h3>
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Reports</p>
+                <div className="flex flex-wrap gap-2">
+                  {blueprint.reports.map((item) => (
+                    <span key={item} className="rounded-full border border-border bg-secondary/50 px-3 py-1 text-xs text-foreground">{item}</span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2">Workflow</p>
+                <div className="rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm text-foreground">
+                  {blueprint.workflows[0] || 'Default CRM flow'}
+                </div>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              {products.filterByStatus('sourced').length} sourced
-            </p>
           </div>
         </div>
 
@@ -108,9 +160,7 @@ export default function Dashboard() {
                         <p className="text-xs text-muted-foreground">{inv.issueDate}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-semibold text-foreground">
-                          {formatCurrency(inv.total, inv.currency)}
-                        </p>
+                        <p className="text-sm font-semibold text-foreground">{formatCurrency(inv.total, inv.currency)}</p>
                         <p className={`text-xs font-medium ${
                           inv.payStatus === 'paid' ? 'text-green-600' :
                           inv.payStatus === 'partial' ? 'text-orange-600' :

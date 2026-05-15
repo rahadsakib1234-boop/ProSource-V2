@@ -1,5 +1,6 @@
 import type { InvoiceBranding, Lead, Settings } from '@/types';
 import { getIndustryProfile } from './industries';
+import { getIndustryBlueprint } from './industryBlueprints';
 
 export type ModuleId = 'Dashboard' | 'Clients' | 'Products' | 'Leads' | 'Pipeline' | 'Invoices' | 'Currency' | 'Export' | 'Settings' | 'Users';
 
@@ -45,6 +46,11 @@ export function getActiveIndustryProfile(settings?: Settings) {
   return getIndustryProfile(settings?.industry || 'sourcing') || getIndustryProfile('sourcing');
 }
 
+export function getActiveIndustryBlueprint(settings?: Settings) {
+  const profile = getActiveIndustryProfile(settings);
+  return getIndustryBlueprint(profile?.id || settings?.industry || 'sourcing');
+}
+
 export function isModuleVisible(settings: Settings | undefined, moduleId: string): boolean {
   const visibility = settings?.templateCustomization?.moduleVisibility;
   if (!visibility) return true;
@@ -66,6 +72,7 @@ export function getInvoiceBranding(settings?: Settings): InvoiceBranding {
 
 export function buildIndustryTemplateSettings(settings: Settings, industryId: string): Settings {
   const profile = getIndustryProfile(industryId) || getIndustryProfile('sourcing');
+  const blueprint = getIndustryBlueprint(profile?.id || industryId || 'sourcing');
   const templateModuleIds = new Set(profile?.defaultModules || []);
   const moduleVisibility = MODULE_OPTIONS.reduce<Partial<Record<ModuleId, boolean>>>((acc, mod) => {
     acc[mod.id] = templateModuleIds.has(mod.id);
@@ -80,5 +87,13 @@ export function buildIndustryTemplateSettings(settings: Settings, industryId: st
       fieldLabels: {},
       moduleVisibility,
     },
+    dashboardBlueprint: blueprint.dashboard,
+    crmBlueprint: blueprint.crm,
+    operationsBlueprint: blueprint.operations,
+    financeBlueprint: blueprint.finance,
+    reportsBlueprint: blueprint.reports,
+    kpiBlueprint: blueprint.kpis,
+    workflowBlueprint: blueprint.workflows,
+    actionBlueprint: blueprint.actions,
   };
 }
