@@ -26,9 +26,7 @@ function createWindow() {
     minWidth: 1024,
     minHeight: 600,
     webPreferences: {
-      preload: isDev
-        ? path.join(__dirname, 'preload.ts')
-        : path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
       enableRemoteModule: false,
@@ -37,7 +35,7 @@ function createWindow() {
   });
 
   if (isDev) {
-    mainWindow.loadURL('http://localhost:5173');
+    mainWindow.loadURL('http://localhost:3000');
   } else {
     mainWindow.loadFile(path.join(__dirname, '../public/index.html'));
   }

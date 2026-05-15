@@ -111,7 +111,7 @@ export function getCustomRate(from: string, to: string): number | null {
 }
 
 export function convert(amount: number, from: string, to: string): number {
-  if (!amount || isNaN(amount)) return 0;
+  if (amount == null || isNaN(amount)) return 0;
 
   const customRate = getCustomRate(from, to);
   if (customRate) return parseFloat(String(amount)) * customRate;

@@ -14,7 +14,7 @@ import { alertService } from '@/services/alertService';
 
 export default function Settings() {
   const [, setLocation] = useHashLocation();
-  const { settings, auth } = useApp();
+  const { settings, auth, clients, products, leads, invoices } = useApp();
   const [formData, setFormData] = useState(settings.settings);
   const [saved, setSaved] = useState(false);
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
@@ -253,13 +253,63 @@ export default function Settings() {
         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm max-w-2xl">
           <h3 className="font-semibold text-foreground mb-4">Local Data Management</h3>
           <div className="space-y-3">
-            <button className="w-full px-4 py-2 border border-border rounded-lg font-medium text-sm hover:bg-secondary transition-colors text-left">
+            <button
+              onClick={() => {
+                const data = {
+                  clients: clients.clients,
+                  products: products.products,
+                  leads: leads.leads,
+                  invoices: invoices.invoices,
+                  settings: settings.settings,
+                  exportedAt: new Date().toISOString(),
+                };
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `prosource-export-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="w-full px-4 py-2 border border-border rounded-lg font-medium text-sm hover:bg-secondary transition-colors text-left cursor-pointer"
+            >
               📥 Export All Data
             </button>
-            <button className="w-full px-4 py-2 border border-border rounded-lg font-medium text-sm hover:bg-secondary transition-colors text-left">
+            <label className="w-full px-4 py-2 border border-border rounded-lg font-medium text-sm hover:bg-secondary transition-colors text-left cursor-pointer block">
               📤 Import Data
-            </button>
-            <button className="w-full px-4 py-2 border border-red-200 rounded-lg font-medium text-sm hover:bg-red-50 transition-colors text-left text-red-600">
+              <input
+                type="file"
+                accept=".json"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    try {
+                      const data = JSON.parse(reader.result as string);
+                      if (data.clients) data.clients.forEach((c: any) => clients.saveClient(c));
+                      if (data.products) data.products.forEach((p: any) => products.saveProduct(p));
+                      if (data.leads) data.leads.forEach((l: any) => leads.saveLead(l));
+                      if (data.invoices) data.invoices.forEach((inv: any) => invoices.saveInvoice(inv));
+                      alert('Data imported successfully.');
+                    } catch {
+                      alert('Failed to parse import file.');
+                    }
+                  };
+                  reader.readAsText(file);
+                }}
+              />
+            </label>
+            <button
+              onClick={() => {
+                if (window.confirm('This will permanently delete all data. Are you sure?')) {
+                  localStorage.clear();
+                  window.location.reload();
+                }
+              }}
+              className="w-full px-4 py-2 border border-red-200 rounded-lg font-medium text-sm hover:bg-red-50 transition-colors text-left text-red-600 cursor-pointer"
+            >
               🗑️ Clear All Data (Irreversible)
             </button>
           </div>

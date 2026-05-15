@@ -3,7 +3,7 @@
  * Main application layout with sidebar and topbar
  */
 
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 

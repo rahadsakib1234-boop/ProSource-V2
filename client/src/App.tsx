@@ -48,7 +48,16 @@ function Router() {
 function AppContent() {
   const { settings, auth } = useApp();
 
-  if (settings.loading || auth.loading) return null;
+  if (settings.loading || auth.loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm text-muted-foreground">Loading ProSource CRM...</p>
+        </div>
+      </div>
+    );
+  }
 
   // 1. Force Admin Setup or Login
   const hasUsers = auth.getUsers().length > 0;
