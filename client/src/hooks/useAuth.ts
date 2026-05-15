@@ -54,6 +54,8 @@ export function useAuth() {
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
   }, []);
 
+  const hasAdmin = useCallback(() => getUsers().some((user) => user.role === 'admin'), [getUsers]);
+
   const login = useCallback(async (username: string, password: string) => {
     try {
       const users = getUsers();
@@ -159,5 +161,6 @@ export function useAuth() {
     addUser,
     deleteUser,
     getUsers,
+    hasAdmin,
   };
 }

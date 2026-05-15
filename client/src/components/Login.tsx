@@ -4,29 +4,29 @@ import { Button } from './ui/button';
 import { Card } from './ui/card';
 
 export function Login() {
-  const { auth, settings } = useApp();
+  const { auth } = useApp();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
 
-  const users = auth.getUsers();
-  const hasAdmin = users.length > 0;
+  const adminExists = auth.hasAdmin();
+  const isFirstTimeSetup = !adminExists;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (isRegistering || !hasAdmin) {
+    if (isFirstTimeSetup) {
       const success = await auth.registerAdmin(username, password);
       if (!success) {
-        setError('Failed to register admin. Admin might already exist.');
+        setError('Failed to create the admin account.');
       }
-    } else {
-      const success = await auth.login(username, password);
-      if (!success) {
-        setError('Invalid username or password.');
-      }
+      return;
+    }
+
+    const success = await auth.login(username, password);
+    if (!success) {
+      setError('Invalid username or password.');
     }
   };
 
@@ -36,12 +36,12 @@ export function Login() {
         <div className="text-center space-y-2">
           <div className="text-4xl mb-4">🔐</div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            {!hasAdmin || isRegistering ? 'Setup Admin Account' : 'Welcome Back'}
+            {isFirstTimeSetup ? 'Setup Admin Account' : 'Welcome Back'}
           </h1>
           <p className="text-sm text-muted-foreground">
-            {!hasAdmin || isRegistering
-              ? 'Create your primary administrator account to secure your CRM.'
-              : 'Sign in to access your ProSource workspace.'}
+            {isFirstTimeSetup
+              ? 'Create the first administrator account to secure your CRM.'
+              : 'Sign in with your existing account to access your ProSource workspace.'}
           </p>
         </div>
 
@@ -77,25 +77,13 @@ export function Login() {
           )}
 
           <Button type="submit" className="w-full py-6 text-base font-bold rounded-xl shadow-lg shadow-blue-500/20">
-            {!hasAdmin || isRegistering ? 'Create Admin Account' : 'Sign In'}
+            {isFirstTimeSetup ? 'Create Admin Account' : 'Sign In'}
           </Button>
         </form>
 
-        {hasAdmin && (
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => { setIsRegistering(!isRegistering); setError(''); }}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {isRegistering ? 'Already have an account? Sign in' : 'Need an account? Register'}
-            </button>
-          </div>
-        )}
-
         <div className="text-center">
           <p className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">
-            ProSource CRM v2 Secure Login
+            {isFirstTimeSetup ? 'First-time setup' : 'ProSource CRM v2 Secure Login'}
           </p>
         </div>
       </Card>
