@@ -48,6 +48,7 @@ function Router() {
 
 function AppContent() {
   const { settings, auth } = useApp();
+  const isConfigured = Boolean(settings.settings.isConfigured);
 
   if (settings.loading || auth.loading) {
     return (
@@ -60,7 +61,7 @@ function AppContent() {
     );
   }
 
-  if (!auth.isAuthenticated) {
+  if (!auth.isAuthenticated || !isConfigured) {
     return <Login />;
   }
 

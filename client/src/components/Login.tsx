@@ -12,12 +12,12 @@ export function Login() {
   const [password, setPassword] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState(settings.settings.industry || 'sourcing');
   const [error, setError] = useState('');
+  const [setupStep, setSetupStep] = useState<'admin' | 'industry' | 'login'>(() => (auth.hasAdmin() ? 'login' : 'admin'));
 
-  const adminExists = auth.hasAdmin();
-  const configured = Boolean(settings.settings.isConfigured);
-  const showAdminSetup = !adminExists;
-  const showIndustrySetup = adminExists && !configured && auth.isAuthenticated;
   const currentProfile = INDUSTRY_PROFILES.find((profile) => profile.id === selectedIndustry) || INDUSTRY_PROFILES[0];
+
+  const showAdminSetup = setupStep === 'admin';
+  const showIndustrySetup = setupStep === 'industry';
 
   const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,7 +25,9 @@ export function Login() {
     const success = await auth.registerAdmin(username, password);
     if (!success) {
       setError('Failed to create the admin account.');
+      return;
     }
+    setSetupStep('industry');
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
