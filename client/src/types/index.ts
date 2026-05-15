@@ -102,6 +102,7 @@ export interface Settings {
 export interface User {
   id: string;
   username: string;
+  email?: string;
   passwordHash: string;
   role: 'admin' | 'employee';
   createdAt: number;

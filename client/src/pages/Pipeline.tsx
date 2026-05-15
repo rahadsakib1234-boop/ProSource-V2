@@ -189,7 +189,7 @@ function KanbanColumn({ stage, leads, onDrop, onDragOver, onDragLeave, onDragSta
             ? 'ring-2 ring-offset-1 scale-[1.01]'
             : 'bg-secondary/40'
         }`}
-        style={isOver ? { background: stage.bg, ringColor: stage.color } : {}}
+        style={isOver ? { background: stage.bg, boxShadow: `0 0 0 2px ${stage.color}` } : {}}
       >
         {leads.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-24 text-muted-foreground">

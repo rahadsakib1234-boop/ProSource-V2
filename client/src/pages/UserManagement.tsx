@@ -14,12 +14,13 @@ export default function UserManagement() {
 
   const users = auth.getUsers();
 
-  const handleAddUser = (e: React.FormEvent) => {
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
 
-    if (auth.addUser(username, password, role)) {
+    const added = await auth.addUser(username, password, role);
+    if (added) {
       setSuccess(`User ${username} added successfully!`);
       setUsername('');
       setPassword('');

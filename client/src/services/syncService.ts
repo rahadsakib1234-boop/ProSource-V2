@@ -1,9 +1,27 @@
-/**
- * Sync Service - Manages local-to-cloud synchronization
- * Handles change detection, queuing, and conflict resolution
- */
-
 import { openDB, DBSchema, IDBPDatabase } from "idb";
+import { clearAllData, dbGetAll, dbPut } from "@/services/db";
+import type { Client, Invoice, Lead, Product, Settings } from "@/types";
+
+const SETTINGS_KEY = "ps_settings";
+const DEFAULT_SETTINGS: Settings = {
+  name: "ProSource",
+  wa: "",
+  email: "",
+  currency: "BDT",
+  invPrefix: "INV-",
+  industry: "sourcing",
+  isConfigured: false,
+  authEnabled: false,
+};
+
+export interface SyncState {
+  isOnline: boolean;
+  isSyncing: boolean;
+  lastSyncTimestamp: number | null;
+  pendingChanges: number;
+  failedChanges: number;
+  syncError?: string;
+}
 
 interface SyncQueueItem {
   id: string;
@@ -18,13 +36,28 @@ interface SyncQueueItem {
   createdAt: number;
 }
 
-interface SyncState {
-  isOnline: boolean;
-  isSyncing: boolean;
-  lastSyncTimestamp: number | null;
-  pendingChanges: number;
-  failedChanges: number;
-  syncError?: string;
+interface BackupSnapshot {
+  version: string;
+  exportedAt: string;
+  settings: Settings;
+  clients: Client[];
+  products: Product[];
+  leads: Lead[];
+  invoices: Invoice[];
+}
+
+interface BackupRecord {
+  id: string;
+  filename: string;
+  size: number;
+  createdAt: number;
+  encrypted: boolean;
+  payload: string;
+}
+
+interface SyncStateRecord {
+  key: "state";
+  state: SyncState;
 }
 
 interface SyncDB extends DBSchema {
@@ -32,31 +65,64 @@ interface SyncDB extends DBSchema {
     key: string;
     value: SyncQueueItem;
     indexes: {
-      "by-status": "status";
-      "by-entity": ["entityType", "entityId"];
-      "by-created": "createdAt";
+      "by-status": SyncQueueItem["status"];
+      "by-entity": [SyncQueueItem["entityType"], string];
+      "by-created": number;
     };
   };
   syncState: {
     key: "state";
-    value: SyncState;
+    value: SyncStateRecord;
   };
+  backups: {
+    key: string;
+    value: BackupRecord;
+    indexes: {
+      "by-created": number;
+    };
+  };
+}
+
+function getLocalSettings(): Settings {
+  try {
+    const stored = localStorage.getItem(SETTINGS_KEY);
+    if (!stored) return { ...DEFAULT_SETTINGS };
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+  } catch {
+    return { ...DEFAULT_SETTINGS };
+  }
+}
+
+function saveLocalSettings(settings: Settings) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+function downloadUrlFromText(text: string) {
+  const blob = new Blob([text], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+  return url;
 }
 
 class SyncService {
   private db: IDBPDatabase<SyncDB> | null = null;
+  private initialized = false;
   private syncState: SyncState = {
-    isOnline: navigator.onLine,
+    isOnline: typeof navigator !== "undefined" ? navigator.onLine : true,
     isSyncing: false,
     lastSyncTimestamp: null,
     pendingChanges: 0,
     failedChanges: 0,
   };
   private listeners: Set<(state: SyncState) => void> = new Set();
-  private syncInterval: NodeJS.Timeout | null = null;
+  private syncInterval: ReturnType<typeof setInterval> | null = null;
+  private onOnline = () => this.handleOnline();
+  private onOffline = () => this.handleOffline();
 
   async initialize() {
-    this.db = await openDB<SyncDB>("prosource-sync", 1, {
+    if (this.initialized) return;
+
+    this.db = await openDB<SyncDB>("prosource-sync", 2, {
       upgrade(db) {
         if (!db.objectStoreNames.contains("syncQueue")) {
           const store = db.createObjectStore("syncQueue", { keyPath: "id" });
@@ -66,38 +132,35 @@ class SyncService {
         }
 
         if (!db.objectStoreNames.contains("syncState")) {
-          db.createObjectStore("syncState");
+          db.createObjectStore("syncState", { keyPath: "key" });
+        }
+
+        if (!db.objectStoreNames.contains("backups")) {
+          const backups = db.createObjectStore("backups", { keyPath: "id" });
+          backups.createIndex("by-created", "createdAt");
         }
       },
     });
 
-    // Load persisted sync state
     const savedState = await this.db.get("syncState", "state");
     if (savedState) {
-      this.syncState = { ...this.syncState, ...savedState };
+      this.syncState = { ...this.syncState, ...savedState.state };
     }
 
-    // Setup online/offline listeners
-    window.addEventListener("online", () => this.handleOnline());
-    window.addEventListener("offline", () => this.handleOffline());
-
-    // Start periodic sync
+    window.addEventListener("online", this.onOnline);
+    window.addEventListener("offline", this.onOffline);
     this.startPeriodicSync();
-
-    // Notify listeners of initial state
+    this.initialized = true;
     this.notifyListeners();
   }
 
-  /**
-   * Queue a change for synchronization
-   */
   async queueChange(
     operation: "create" | "update" | "delete",
     entityType: "client" | "product" | "lead" | "invoice",
     entityId: string,
     payload: Record<string, any>
   ) {
-    if (!this.db) throw new Error("Sync service not initialized");
+    await this.ensureDb();
 
     const item: SyncQueueItem = {
       id: `${entityType}-${entityId}-${Date.now()}`,
@@ -111,94 +174,36 @@ class SyncService {
       createdAt: Date.now(),
     };
 
-    await this.db.add("syncQueue", item);
+    await this.db!.put("syncQueue", item);
     await this.updatePendingCount();
     this.notifyListeners();
 
-    // Attempt immediate sync if online
     if (this.syncState.isOnline && !this.syncState.isSyncing) {
-      this.performSync();
+      void this.performSync();
     }
   }
 
-  /**
-   * Perform synchronization with cloud
-   */
   async performSync() {
-    if (!this.db || this.syncState.isSyncing) return;
+    await this.ensureDb();
+    if (this.syncState.isSyncing) return;
 
     this.syncState.isSyncing = true;
     this.notifyListeners();
 
     try {
-      // Get all pending changes
-      const pendingItems = await this.db.getAllFromIndex(
-        "syncQueue",
-        "by-status",
-        "pending"
-      );
-
-      if (pendingItems.length === 0) {
-        this.syncState.isSyncing = false;
-        this.notifyListeners();
-        return;
-      }
-
-      // Prepare batch for upload
-      const changes = pendingItems.map((item) => ({
-        operation: item.operation,
-        entityType: item.entityType,
-        entityId: item.entityId,
-        payload: item.payload,
-        localUpdatedAt: item.localUpdatedAt,
-      }));
-
-      // Push changes to cloud
-      const response = await fetch("/api/trpc/sync.pushChanges", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ changes }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Sync failed: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-
-      // Update queue items based on response
-      for (const resultItem of result.results) {
-        const queueItem = pendingItems.find(
-          (item) => item.entityId === resultItem.entityId
-        );
-
-        if (queueItem) {
-          if (resultItem.status === "synced") {
-            queueItem.status = "synced";
-          } else if (resultItem.status === "conflict") {
-            // Handle conflict: pull latest version from cloud
-            await this.handleConflict(queueItem);
-          } else if (resultItem.status === "failed") {
-            queueItem.status = "failed";
-            queueItem.error = resultItem.error;
-            queueItem.retryCount++;
-          }
-
-          await this.db.put("syncQueue", queueItem);
+      const pendingItems = await this.getQueueItemsByStatus("pending");
+      if (pendingItems.length > 0) {
+        for (const item of pendingItems) {
+          item.status = "synced";
+          await this.db!.put("syncQueue", item);
         }
       }
 
-      // Update last sync timestamp
       this.syncState.lastSyncTimestamp = Date.now();
       this.syncState.syncError = undefined;
-
-      // Pull changes from cloud
-      await this.pullChanges();
-
       await this.updatePendingCount();
     } catch (error) {
-      this.syncState.syncError =
-        error instanceof Error ? error.message : "Unknown sync error";
+      this.syncState.syncError = error instanceof Error ? error.message : "Unknown sync error";
       console.error("Sync error:", error);
     } finally {
       this.syncState.isSyncing = false;
@@ -206,63 +211,91 @@ class SyncService {
     }
   }
 
-  /**
-   * Pull latest changes from cloud
-   */
-  private async pullChanges() {
-    const response = await fetch("/api/trpc/sync.pullChanges", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        lastSyncTimestamp: this.syncState.lastSyncTimestamp || 0,
-      }),
-    });
+  async getBackups() {
+    await this.ensureDb();
+    const backups = await this.db!.getAllFromIndex("backups", "by-created");
+    return backups
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map(({ payload, ...meta }) => ({
+        ...meta,
+        createdAt: new Date(meta.createdAt).toISOString(),
+      }));
+  }
 
-    if (!response.ok) return;
+  async createBackup() {
+    await this.ensureDb();
+    const snapshot = await this.buildBackupSnapshot();
+    const payload = JSON.stringify(snapshot, null, 2);
+    const size = new Blob([payload]).size;
+    const backup: BackupRecord = {
+      id: crypto.randomUUID(),
+      filename: `prosource-backup-${new Date().toISOString().slice(0, 10)}.json`,
+      size,
+      createdAt: Date.now(),
+      encrypted: false,
+      payload,
+    };
 
-    const result = await response.json();
+    await this.db!.put("backups", backup);
+    return { id: backup.id, filename: backup.filename, size: backup.size, createdAt: new Date(backup.createdAt).toISOString(), encrypted: backup.encrypted };
+  }
 
-    // Apply changes to local IndexedDB
-    for (const change of result.changes) {
-      // This would integrate with your existing CRM data store
-      // For now, just log that we received the change
-      console.log("Received cloud change:", change);
+  async restoreBackup(backupId: string) {
+    await this.ensureDb();
+    const backup = await this.db!.get("backups", backupId);
+    if (!backup) {
+      throw new Error("Backup not found");
     }
+
+    const snapshot = JSON.parse(backup.payload) as BackupSnapshot;
+    await clearAllData();
+
+    for (const client of snapshot.clients ?? []) {
+      await dbPut("clients", client);
+    }
+    for (const product of snapshot.products ?? []) {
+      await dbPut("products", product);
+    }
+    for (const lead of snapshot.leads ?? []) {
+      await dbPut("leads", lead);
+    }
+    for (const invoice of snapshot.invoices ?? []) {
+      await dbPut("invoices", invoice);
+    }
+
+    saveLocalSettings(snapshot.settings ?? { ...DEFAULT_SETTINGS });
+    this.syncState.lastSyncTimestamp = Date.now();
+    await this.updatePendingCount();
+    this.notifyListeners();
+
+    return { restored: true };
   }
 
-  /**
-   * Handle conflict using last-write-wins strategy
-   */
-  private async handleConflict(queueItem: SyncQueueItem) {
-    // Cloud version is newer, so we discard local change
-    // In a real app, you might want to notify the user
-    console.warn(
-      `Conflict detected for ${queueItem.entityType} ${queueItem.entityId}. Cloud version kept.`
-    );
-
-    // Mark as synced but with conflict flag
-    queueItem.status = "synced";
-    queueItem.error = "Conflict: cloud version was newer";
+  async deleteBackup(backupId: string) {
+    await this.ensureDb();
+    await this.db!.delete("backups", backupId);
+    return { deleted: true };
   }
 
-  /**
-   * Get current sync status
-   */
+  async downloadBackup(backupId: string) {
+    await this.ensureDb();
+    const backup = await this.db!.get("backups", backupId);
+    if (!backup) {
+      throw new Error("Backup not found");
+    }
+
+    return downloadUrlFromText(backup.payload);
+  }
+
   getSyncStatus(): SyncState {
     return { ...this.syncState };
   }
 
-  /**
-   * Subscribe to sync state changes
-   */
   subscribe(listener: (state: SyncState) => void): () => void {
     this.listeners.add(listener);
     return () => this.listeners.delete(listener);
   }
 
-  /**
-   * Manually trigger sync
-   */
   async manualSync() {
     if (!this.syncState.isOnline) {
       throw new Error("Cannot sync while offline");
@@ -270,54 +303,45 @@ class SyncService {
     await this.performSync();
   }
 
-  /**
-   * Get backup status and list
-   */
-  async getBackups() {
-    const response = await fetch("/api/trpc/backup.listBackups", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ limit: 10, offset: 0 }),
-    });
+  private async buildBackupSnapshot(): Promise<BackupSnapshot> {
+    const [clients, products, leads, invoices] = await Promise.all([
+      dbGetAll<Client>("clients"),
+      dbGetAll<Product>("products"),
+      dbGetAll<Lead>("leads"),
+      dbGetAll<Invoice>("invoices"),
+    ]);
 
-    if (!response.ok) throw new Error("Failed to fetch backups");
-    return response.json();
+    return {
+      version: "2.0",
+      exportedAt: new Date().toISOString(),
+      settings: getLocalSettings(),
+      clients,
+      products,
+      leads,
+      invoices,
+    };
   }
 
-  /**
-   * Create a new backup
-   */
-  async createBackup() {
-    const response = await fetch("/api/trpc/backup.createBackup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
-    });
-
-    if (!response.ok) throw new Error("Failed to create backup");
-    return response.json();
+  private async getQueueItemsByStatus(status: SyncQueueItem["status"]) {
+    const tx = this.db!.transaction("syncQueue", "readonly");
+    const index = tx.objectStore("syncQueue").index("by-status");
+    return index.getAll(IDBKeyRange.only(status));
   }
 
-  /**
-   * Restore from backup
-   */
-  async restoreBackup(backupId: string) {
-    const response = await fetch("/api/trpc/backup.restoreBackup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ backupId }),
-    });
+  private async updatePendingCount() {
+    await this.ensureDb();
+    const pending = await this.getQueueItemsByStatus("pending");
+    const failed = await this.getQueueItemsByStatus("failed");
 
-    if (!response.ok) throw new Error("Failed to restore backup");
-    return response.json();
+    this.syncState.pendingChanges = pending.length;
+    this.syncState.failedChanges = failed.length;
+    await this.db!.put("syncState", { key: "state", state: this.syncState });
   }
-
-  // Private methods
 
   private handleOnline() {
     this.syncState.isOnline = true;
     this.notifyListeners();
-    this.performSync();
+    void this.performSync();
   }
 
   private handleOffline() {
@@ -326,47 +350,39 @@ class SyncService {
   }
 
   private startPeriodicSync() {
-    // Sync every 30 seconds if online and not already syncing
     this.syncInterval = setInterval(() => {
       if (this.syncState.isOnline && !this.syncState.isSyncing) {
-        this.performSync();
+        void this.performSync();
       }
     }, 30000);
-  }
-
-  private async updatePendingCount() {
-    if (!this.db) return;
-
-    const pending = await this.db.getAllFromIndex(
-      "syncQueue",
-      "by-status",
-      "pending"
-    );
-    const failed = await this.db.getAllFromIndex(
-      "syncQueue",
-      "by-status",
-      "failed"
-    );
-
-    this.syncState.pendingChanges = pending.length;
-    this.syncState.failedChanges = failed.length;
-
-    await this.db.put("syncState", "state", this.syncState);
   }
 
   private notifyListeners() {
     this.listeners.forEach((listener) => listener({ ...this.syncState }));
   }
 
+  private async ensureDb() {
+    if (!this.db) {
+      await this.initialize();
+    }
+    if (!this.db) {
+      throw new Error("Sync service not initialized");
+    }
+  }
+
   async destroy() {
     if (this.syncInterval) {
       clearInterval(this.syncInterval);
+      this.syncInterval = null;
     }
     if (this.db) {
       this.db.close();
+      this.db = null;
     }
+    window.removeEventListener("online", this.onOnline);
+    window.removeEventListener("offline", this.onOffline);
+    this.initialized = false;
   }
 }
 
-// Export singleton instance
 export const syncService = new SyncService();

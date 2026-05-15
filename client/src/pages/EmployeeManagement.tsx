@@ -31,7 +31,11 @@ export default function EmployeeManagement() {
   ]);
 
   const [showAddForm, setShowAddForm] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', role: 'employee' as const });
+  const [formData, setFormData] = useState<{ name: string; email: string; role: Employee['role'] }>({
+    name: '',
+    email: '',
+    role: 'employee',
+  });
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -45,7 +49,7 @@ export default function EmployeeManagement() {
       id: `emp-${Date.now()}`,
       name: formData.name,
       email: formData.email,
-      role: formData.role as 'admin' | 'employee',
+      role: formData.role,
       joinDate: new Date().toISOString().split('T')[0],
       status: 'active',
     };
@@ -68,7 +72,7 @@ export default function EmployeeManagement() {
     setTimeout(() => setMessage(null), 3000);
   };
 
-  const handleRoleChange = (id: string, newRole: 'admin' | 'employee') => {
+  const handleRoleChange = (id: string, newRole: Employee['role']) => {
     if (id === '1') {
       setMessage({ type: 'error', text: 'Cannot change your own role' });
       return;
@@ -99,7 +103,7 @@ export default function EmployeeManagement() {
               id: `emp-${Date.now()}-${i}`,
               name,
               email,
-              role: (role === 'admin' ? 'admin' : 'employee') as 'admin' | 'employee',
+              role: role === 'admin' ? 'admin' : 'employee',
               joinDate: new Date().toISOString().split('T')[0],
               status: 'active',
             });
