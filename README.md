@@ -67,16 +67,28 @@ pnpm run dev
 
 ```bash
 pnpm run check
-pnpm run build:web
-pnpm run build:electron
+pnpm run build
 ```
+
+## Deployment
+
+The frontend is configured for Vercel static hosting. On push to `main`, GitHub Actions will run the test suite and deploy the app.
+
+Required GitHub secrets:
+- `VERCEL_TOKEN`
+- `VERCEL_ORG_ID`
+- `VERCEL_PROJECT_ID`
+
+Required Vercel environment variables:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
 
 ## Important notes
 
 - Data is stored locally in the browser/desktop app environment.
 - Backups are local backup files handled by the app.
-- This repo does **not** currently ship a Supabase backend or tRPC cloud API.
-- If you want true multi-tenant cloud sync later, that should be built as a separate backend phase.
+- The frontend is built for Vercel deployment, and the project includes Supabase schema and AI function support for backend integration.
+- True Supabase backend deployment should be handled separately using the Supabase dashboard or CLI, with the schema in `SUPABASE_SCHEMA.sql` and functions in `supabase/functions/ai-assistant/`.
 
 ## Status
 
