@@ -141,6 +141,8 @@ export interface User {
   username: string;
   email?: string;
   role: 'admin' | 'employee';
+  accountType?: 'company' | 'personal';
+  permissions?: string[];
   createdAt: string;
   updatedAt: string;
   lastLogin?: string;

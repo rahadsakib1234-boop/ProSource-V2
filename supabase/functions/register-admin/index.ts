@@ -11,20 +11,18 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // 1. Create User in Supabase Auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      user_metadata: { role: 'admin' },
+      user_metadata: { role: 'admin', account_type: accountType },
     });
 
     if (authError) throw authError;
     const user = authData.user;
     if (!user?.id) throw new Error('User creation failed');
 
-    // 2. Create Organization
-    const organizationName = accountType === 'personal' ? email.split('@')[0] : (email.split('@')[0] || 'ProSource Org');
+    const organizationName = accountType === 'personal' ? `${email.split('@')[0]} Personal` : (email.split('@')[0] || 'ProSource Org');
     const orgId = crypto.randomUUID();
 
     const { error: orgError } = await supabaseAdmin
@@ -37,7 +35,6 @@ serve(async (req) => {
 
     if (orgError) throw orgError;
 
-    // 3. Create Profile
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .insert({
@@ -45,12 +42,14 @@ serve(async (req) => {
         organization_id: orgId,
         username: organizationName,
         role: 'admin',
+        account_type: accountType,
+        permissions: accountType === 'personal' ? ['dashboard', 'clients', 'products', 'leads', 'pipeline', 'invoices', 'reports', 'files', 'settings'] : null,
       });
 
     if (profileError) throw profileError;
 
     return new Response(
-      JSON.stringify({ success: true, organizationId: orgId }),
+      JSON.stringify({ success: true, organizationId: orgId, accountType }),
       { headers: { 'Content-Type': 'application/json' }, status: 200 }
     );
   } catch (error) {

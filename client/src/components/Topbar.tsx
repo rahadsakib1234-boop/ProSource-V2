@@ -16,8 +16,8 @@ interface TopbarProps {
   onSearch?: (query: string) => void;
 }
 
-const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
-  '/': { title: 'Dashboard', subtitle: 'Overview of your sourcing business' },
+const BASE_PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
+  '/': { title: 'Dashboard', subtitle: 'Overview of your workspace' },
   '/clients': { title: 'Clients', subtitle: 'Manage client relationships' },
   '/products': { title: 'Products', subtitle: 'All products across all clients' },
   '/leads': { title: 'Leads', subtitle: 'Quote requests and potential clients' },
@@ -26,6 +26,7 @@ const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
   '/currency': { title: 'Currency', subtitle: 'Exchange rates & calculations' },
   '/export': { title: 'Export', subtitle: 'Reports & data exports' },
   '/settings': { title: 'Settings', subtitle: 'Configure your CRM' },
+  '/users': { title: 'Team', subtitle: 'Manage employees and permissions' },
 };
 
 export function Topbar({ onSearch }: TopbarProps) {
@@ -35,20 +36,14 @@ export function Topbar({ onSearch }: TopbarProps) {
 
   const industry = getIndustryProfile(settings.settings.industry || 'sourcing');
   const terms = industry?.terminology;
+  const workspaceType = auth.user?.accountType === 'personal' ? 'Personal workspace' : 'Company workspace';
 
-  const PAGE_TITLES: Record<string, { title: string; subtitle: string }> = {
-    '/': { title: 'Dashboard', subtitle: 'Overview of your sourcing business' },
-    '/clients': { title: terms?.clients || 'Clients', subtitle: 'Manage client relationships' },
-    '/products': { title: terms?.products || 'Products', subtitle: 'All products across all clients' },
-    '/leads': { title: terms?.leads || 'Leads', subtitle: 'Quote requests and potential clients' },
-    '/pipeline': { title: 'Pipeline', subtitle: 'Sales pipeline view' },
-    '/invoices': { title: terms?.invoices || 'Invoices', subtitle: 'Professional invoice management' },
-    '/currency': { title: 'Currency', subtitle: 'Exchange rates & calculations' },
-    '/export': { title: 'Export', subtitle: 'Reports & data exports' },
-    '/settings': { title: 'Settings', subtitle: 'Configure your CRM' },
-  };
-
-  const pageInfo = PAGE_TITLES[location] || { title: 'ProSource', subtitle: '' };
+  const pageInfo = BASE_PAGE_TITLES[location] || { title: 'ProSource', subtitle: '' };
+  const title = pageInfo.title === 'Clients' && terms?.clients ? terms.clients :
+    pageInfo.title === 'Products' && terms?.products ? terms.products :
+    pageInfo.title === 'Leads' && terms?.leads ? terms.leads :
+    pageInfo.title === 'Invoices' && terms?.invoices ? terms.invoices : pageInfo.title;
+  const subtitle = pageInfo.subtitle;
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
@@ -58,18 +53,17 @@ export function Topbar({ onSearch }: TopbarProps) {
 
   return (
     <div className="topbar">
-      {/* Title */}
       <div className="flex-1">
         <div className="topbar-title">
-          {pageInfo.title}
-          {pageInfo.subtitle && <small>{pageInfo.subtitle}</small>}
+          {title}
+          {subtitle && <small>{subtitle}</small>}
         </div>
       </div>
 
       <div className="flex items-center gap-3">
         <div className="hidden md:flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs text-muted-foreground">
           <UserCircle2 className="h-4 w-4" />
-          <span>{auth.user?.username || 'Signed in'}</span>
+          <span>{auth.user?.username || 'Signed in'} · {workspaceType}</span>
         </div>
 
         <button
@@ -82,7 +76,6 @@ export function Topbar({ onSearch }: TopbarProps) {
           Sign out
         </button>
 
-        {/* Search */}
         <div className="search-global">
           <span className="search-icon">🔍</span>
           <input
@@ -94,7 +87,6 @@ export function Topbar({ onSearch }: TopbarProps) {
           />
         </div>
 
-        {/* Notifications */}
         <div className="ml-4">
           <NotificationPanel />
         </div>

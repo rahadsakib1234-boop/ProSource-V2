@@ -8,7 +8,6 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Verify authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) throw new Error('Missing Authorization header');
 
@@ -22,10 +21,9 @@ serve(async (req) => {
       { auth: { persistSession: false } }
     );
 
-    // Verify requester is an admin of a company organization
     const { data: profile, error: profileError } = await supabaseAdmin
       .from('profiles')
-      .select('organization_id, role')
+      .select('organization_id, role, account_type')
       .eq('id', user.id)
       .single();
 
@@ -49,19 +47,19 @@ serve(async (req) => {
       case 'list': {
         const { data, error } = await supabaseAdmin
           .from('profiles')
-          .select('*, organizations(name)')
+          .select('id, organization_id, username, role, account_type, permissions, created_at, updated_at, last_login, organizations(name, account_type)')
           .eq('organization_id', organizationId);
         if (error) throw error;
         return new Response(JSON.stringify({ success: true, data }), { headers: { 'Content-Type': 'application/json' } });
       }
 
       case 'add': {
-        const { email, password, role = 'employee' } = payload;
+        const { email, password, role = 'employee', permissions = [] } = payload;
         const { data: authData, error: aError } = await supabaseAdmin.auth.admin.createUser({
           email,
           password,
           email_confirm: true,
-          user_metadata: { role },
+          user_metadata: { role, permissions },
         });
         if (aError) throw aError;
 
@@ -70,6 +68,8 @@ serve(async (req) => {
           organization_id: organizationId,
           username: email.split('@')[0],
           role,
+          account_type: 'company',
+          permissions,
         });
         if (pError) throw pError;
 
@@ -78,48 +78,21 @@ serve(async (req) => {
 
       case 'delete': {
         const { userId } = payload;
+        if (userId === user.id) throw new Error('You cannot delete your own account from here');
         const { error: aError } = await supabaseAdmin.auth.admin.deleteUser(userId);
         if (aError) throw aError;
-
-        // Profile is deleted via ON DELETE CASCADE in schema
         return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
       }
 
       case 'update': {
-        const { userId, role } = payload;
+        const { userId, role, permissions = [] } = payload;
         const { error: uError } = await supabaseAdmin
           .from('profiles')
-          .update({ role })
-          .eq('id', userId);
+          .update({ role, permissions })
+          .eq('id', userId)
+          .eq('organization_id', organizationId);
         if (uError) throw uError;
         return new Response(JSON.stringify({ success: true }), { headers: { 'Content-Type': 'application/json' } });
-      }
-
-      case 'bulkAdd': {
-        const users = payload as Array<{ email: string; password?: string; role: string }>;
-        const results = [];
-        for (const u of users) {
-          try {
-            const { data: authData, error: aError } = await supabaseAdmin.auth.admin.createUser({
-              email: u.email,
-              password: u.password || 'TemporaryPassword123!',
-              email_confirm: true,
-              user_metadata: { role: u.role },
-            });
-            if (aError) throw aError;
-
-            await supabaseAdmin.from('profiles').insert({
-              id: authData.user.id,
-              organization_id: organizationId,
-              username: u.email.split('@')[0],
-              role: u.role,
-            });
-            results.push({ email: u.email, success: true });
-          } catch (e) {
-            results.push({ email: u.email, success: false, error: e.message });
-          }
-        }
-        return new Response(JSON.stringify({ success: true, results }), { headers: { 'Content-Type': 'application/json' } });
       }
 
       default:

@@ -5,9 +5,9 @@ import { useLeads } from '@/hooks/useLeads';
 import { useInvoices } from '@/hooks/useInvoices';
 import { useSettings } from '@/hooks/useSettings';
 import { useAuth } from '@/hooks/useAuth';
-import { initDB } from '@/services/db';
 import { fetchExchangeRates } from '@/services/currency';
 import { syncService } from '@/services/syncService';
+import { initDB } from '@/services/db';
 
 interface AppContextType {
   dbReady: boolean;
@@ -28,17 +28,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [dbError, setDbError] = useState<string | null>(null);
   const [ratesReady, setRatesReady] = useState(false);
 
-  const clients = useClients(dbReady);
-  const products = useProducts(dbReady);
-  const leads = useLeads(dbReady);
-  const invoices = useInvoices(dbReady);
-  const settings = useSettings();
   const auth = useAuth();
+  const settings = useSettings();
+  const clients = useClients(dbReady && auth.isAuthenticated);
+  const products = useProducts(dbReady && auth.isAuthenticated);
+  const leads = useLeads(dbReady && auth.isAuthenticated);
+  const invoices = useInvoices(dbReady && auth.isAuthenticated);
 
   useEffect(() => {
     async function initializeDB() {
       try {
         await initDB();
+        syncService.initialize();
         setDbReady(true);
         setDbError(null);
       } catch (err) {
@@ -67,9 +68,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (dbReady && auth.isAuthenticated) {
       syncService.fullHydrate().then(() => {
-        // Trigger a refresh of the domain hooks if needed
-        // (In this architecture, the hooks rely on dbReady,
-        // so we might need a way to force them to re-fetch from IndexedDB)
+        // Refresh handled by hooks.
       });
     }
   }, [dbReady, auth.isAuthenticated]);

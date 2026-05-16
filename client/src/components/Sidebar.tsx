@@ -7,6 +7,7 @@ import { useHashLocation } from 'wouter/use-hash-location';
 import { useApp } from '@/contexts/AppContext';
 import { getIndustryProfile } from '@/services/industries';
 import { isModuleVisible } from '@/services/templateCustomization';
+import { canAccessModule } from '@/services/accessControl';
 import { SyncStatusIndicator } from './SyncStatusIndicator';
 
 interface NavItem {
@@ -24,27 +25,23 @@ export function Sidebar() {
   const industry = getIndustryProfile(settings.settings.industry || 'sourcing');
   const terms = industry?.terminology;
 
-  const isAdmin = auth.user?.role === 'admin';
-
   const navItems: NavItem[] = [
-    { id: 'Dashboard', label: 'Dashboard', icon: '📊', path: '/' },
-    { id: 'Clients', label: terms?.clients || 'CRM', icon: '👥', path: '/clients', badge: clients.clients.length },
-    { id: 'Products', label: terms?.products || 'Products', icon: '📦', path: '/products', badge: products.products.length },
-    { id: 'Leads', label: terms?.leads || 'Leads', icon: '🎯', path: '/leads', badge: leads.getOpenLeads().length },
-    { id: 'Pipeline', label: 'Operations', icon: '🔄', path: '/pipeline' },
-    { id: 'Invoices', label: terms?.invoices || 'Finance', icon: '🧾', path: '/invoices' },
-    { id: 'Users', label: 'Team', icon: '👥', path: '/users' },
-    { id: 'Reports', label: 'Reports', icon: '📈', path: '/reports' },
-    { id: 'Files', label: 'Files', icon: '🗂️', path: '/files' },
-    { id: 'Settings', label: 'Settings', icon: '⚙️', path: '/settings' },
+    { id: 'dashboard', label: 'Dashboard', icon: '📊', path: '/' },
+    { id: 'clients', label: terms?.clients || 'CRM', icon: '👥', path: '/clients', badge: clients.clients.length },
+    { id: 'products', label: terms?.products || 'Products', icon: '📦', path: '/products', badge: products.products.length },
+    { id: 'leads', label: terms?.leads || 'Leads', icon: '🎯', path: '/leads', badge: leads.getOpenLeads().length },
+    { id: 'pipeline', label: 'Operations', icon: '🔄', path: '/pipeline' },
+    { id: 'invoices', label: terms?.invoices || 'Finance', icon: '🧾', path: '/invoices' },
+    { id: 'users', label: 'Team', icon: '👥', path: '/users' },
+    { id: 'reports', label: 'Reports', icon: '📈', path: '/reports' },
+    { id: 'files', label: 'Files', icon: '🗂️', path: '/files' },
+    { id: 'settings', label: 'Settings', icon: '⚙️', path: '/settings' },
   ]
     .filter(item => isModuleVisible(settings.settings, item.id))
-    .filter(item => {
-      if (item.id === 'Users') return isAdmin;
-      return true;
-    });
+    .filter(item => canAccessModule(auth.user, item.id as any));
 
   const isActive = (path: string) => location === path;
+  const workspaceType = auth.user?.accountType === 'personal' ? 'Personal workspace' : 'Company workspace';
 
   return (
     <div className="sidebar">
@@ -54,7 +51,7 @@ export function Sidebar() {
           <div className="brand">
             Pro<span>Source</span>
           </div>
-          <div className="tagline">CRM v2</div>
+          <div className="tagline">{workspaceType}</div>
         </div>
         <button 
           onClick={() => auth.logout()}
@@ -88,7 +85,7 @@ export function Sidebar() {
       </div>
 
       <div className="border-t border-white/10 px-3 py-3 text-xs text-sidebar-foreground/40 font-mono">
-        v2.0.0
+        {auth.user?.role === 'admin' ? 'Admin access' : 'Employee access'}
       </div>
     </div>
   );

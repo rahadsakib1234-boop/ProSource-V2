@@ -15,6 +15,7 @@ export default function Dashboard() {
   const isAdmin = auth.user?.role === 'admin';
   const industry = getActiveIndustryProfile(settings.settings);
   const blueprint = getActiveIndustryBlueprint(settings.settings);
+  const workspaceType = auth.user?.accountType === 'personal' ? 'Personal workspace' : 'Company workspace';
 
   const totalRevenue = invoices.getTotalRevenue();
   const paidAmount = invoices.getPaidAmount();
@@ -31,12 +32,30 @@ export default function Dashboard() {
           <div>
             <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              {industry?.icon} {industry?.name || 'Industry'} template active
+              {industry?.icon} {industry?.name || 'Industry'} template active · {workspaceType}
             </p>
           </div>
           <div className="rounded-2xl border border-border bg-card px-4 py-3 text-right">
-            <div className="text-xs uppercase tracking-widest text-muted-foreground">Workflow</div>
-            <div className="text-sm font-semibold text-foreground">{blueprint.workflows[0] || 'Default CRM flow'}</div>
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Current role</div>
+            <div className="text-sm font-semibold text-foreground">{isAdmin ? 'Admin can manage employees' : 'Employee access only'}</div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Workspace</div>
+            <div className="mt-2 text-lg font-semibold text-foreground">{workspaceType}</div>
+            <div className="mt-1 text-sm text-muted-foreground">{auth.user?.accountType === 'company' ? 'Employees can be added and limited by permissions.' : 'Single-user space with no employee management.'}</div>
+          </div>
+          <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Account</div>
+            <div className="mt-2 text-lg font-semibold text-foreground">{auth.user?.role === 'admin' ? 'Admin' : 'Employee'}</div>
+            <div className="mt-1 text-sm text-muted-foreground">{auth.user?.username}</div>
+          </div>
+          <div className="bg-card border border-border rounded-2xl p-4 shadow-sm">
+            <div className="text-xs uppercase tracking-widest text-muted-foreground">Access model</div>
+            <div className="mt-2 text-lg font-semibold text-foreground">Company-controlled permissions</div>
+            <div className="mt-1 text-sm text-muted-foreground">Admins choose what each employee can open.</div>
           </div>
         </div>
 
@@ -167,7 +186,6 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         <div className={`grid grid-cols-1 ${isAdmin ? 'lg:grid-cols-2' : 'lg:grid-cols-1'} gap-6`}>
-          {/* Recent Invoices */}
           {isAdmin && (
             <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
               <div className="px-6 py-4 border-b border-border">
@@ -202,7 +220,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Open Leads */}
           <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
             <div className="px-6 py-4 border-b border-border">
               <h3 className="font-semibold text-foreground">Open Leads</h3>

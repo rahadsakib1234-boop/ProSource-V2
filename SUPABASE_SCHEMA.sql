@@ -15,6 +15,9 @@ CREATE TABLE profiles (
   organization_id UUID REFERENCES organizations(id) ON DELETE SET NULL,
   username TEXT,
   role TEXT CHECK (role IN ('admin', 'employee')) DEFAULT 'employee',
+  account_type TEXT CHECK (account_type IN ('company', 'personal')) DEFAULT 'company',
+  permissions TEXT[] DEFAULT '{}',
+  last_login TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -138,15 +141,12 @@ ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 
--- Organization access: Users can see the organization they belong to
 CREATE POLICY "Organization access" ON organizations
   USING (id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));
 
--- Profile access: Users can read their own profile
 CREATE POLICY "Profile access" ON profiles
   USING (id = auth.uid());
 
--- Multi-tenant isolation for all other tables
 CREATE POLICY "Client isolation" ON clients
   USING (organization_id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));
 
@@ -162,7 +162,6 @@ CREATE POLICY "Invoice isolation" ON invoices
 CREATE POLICY "Settings isolation" ON settings
   USING (organization_id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));
 
--- Allow all policies to apply for INSERT, UPDATE, DELETE as well
 CREATE POLICY "Client all access" ON clients FOR ALL
   USING (organization_id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));
 
