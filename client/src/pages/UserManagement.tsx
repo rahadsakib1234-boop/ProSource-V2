@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Layout } from '../components/Layout';
 import { Button } from '../components/ui/button';
@@ -12,7 +12,15 @@ export default function UserManagement() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const users = auth.getUsers();
+  const [users, setUsers] = useState<any[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+    auth.getUsers().then((list) => {
+      if (mounted) setUsers(list || []);
+    }).catch((err) => console.error(err));
+    return () => { mounted = false; };
+  }, [auth]);
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();

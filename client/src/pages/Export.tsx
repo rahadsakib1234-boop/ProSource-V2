@@ -23,8 +23,10 @@ async function getXLSX() {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function fmtDate(ts: number) {
-  return new Date(ts).toLocaleDateString('en-GB');
+function fmtDate(ts: number | string) {
+  const val = typeof ts === 'string' ? Date.parse(ts) : ts;
+  if (Number.isNaN(val)) return '';
+  return new Date(val).toLocaleDateString('en-GB');
 }
 
 function downloadBlob(blob: Blob, filename: string) {

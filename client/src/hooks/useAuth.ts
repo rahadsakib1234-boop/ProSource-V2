@@ -22,9 +22,12 @@ export function useAuth() {
         // In a real app, we would fetch the user's profile and organization from the 'profiles' table
         const user: User = {
           id: data.user.id,
+          organizationId: '',
           username: data.user.email || 'User',
+          email: data.user.email ?? undefined,
           role: 'admin', // Default to admin for now, will be fetched from profile in Phase 2
-          createdAt: data.user.created_at ? new Date(data.user.created_at).getTime() : Date.now(),
+          createdAt: data.user.created_at ? new Date(data.user.created_at).toISOString() : new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         };
 
         setAuthState({ user, isAuthenticated: true });
@@ -58,9 +61,12 @@ export function useAuth() {
       if (data.user) {
         const user: User = {
           id: data.user.id,
+          organizationId: '',
           username: data.user.email || 'Admin',
+          email: data.user.email ?? undefined,
           role: 'admin',
-          createdAt: data.user.created_at ? new Date(data.user.created_at).getTime() : Date.now(),
+          createdAt: data.user.created_at ? new Date(data.user.created_at).toISOString() : new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         };
 
         setAuthState({ user, isAuthenticated: true });
@@ -94,24 +100,53 @@ export function useAuth() {
   }, [getUsers]);
 
   useEffect(() => {
-    // Handle initial session and auth changes
-    supabase.auth.onAuthStateChanged((event, session) => {
+    let sub: any = null;
+
+    async function init() {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const session = sessionData?.session ?? null;
+
       if (session?.user) {
         const user: User = {
           id: session.user.id,
+          organizationId: '',
           username: session.user.email || 'User',
-          role: 'admin', // Will be dynamically fetched from profiles table in Phase 2
-          createdAt: session.user.created_at ? new Date(session.user.created_at).getTime() : Date.now(),
+          email: session.user.email ?? undefined,
+          role: 'admin',
+          createdAt: session.user.created_at ? new Date(session.user.created_at).toISOString() : new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         };
         setAuthState({ user, isAuthenticated: true });
       } else {
         setAuthState({ user: null, isAuthenticated: false });
       }
       setLoading(false);
-    });
+
+      // Subscribe to auth changes
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          const u: User = {
+            id: session.user.id,
+            organizationId: '',
+            username: session.user.email || 'User',
+            email: session.user.email ?? undefined,
+            role: 'admin',
+            createdAt: session.user.created_at ? new Date(session.user.created_at).toISOString() : new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          setAuthState({ user: u, isAuthenticated: true });
+        } else {
+          setAuthState({ user: null, isAuthenticated: false });
+        }
+      });
+
+      sub = data?.subscription;
+    }
+
+    init();
 
     return () => {
-      // Unsubscribe would go here if the SDK returned a subscription object
+      if (sub && typeof sub.unsubscribe === 'function') sub.unsubscribe();
     };
   }, []);
 

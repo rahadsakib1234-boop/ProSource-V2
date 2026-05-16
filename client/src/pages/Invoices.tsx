@@ -82,7 +82,7 @@ export default function Invoices() {
         await invoices.saveInvoice({
           ...invoice,
           payStatus: newStatus,
-          updatedAt: Date.now(),
+          updatedAt: new Date().toISOString(),
         });
       }
     } catch (err) {

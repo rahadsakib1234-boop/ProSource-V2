@@ -32,6 +32,7 @@ export default function Products() {
     const productData: Omit<Product, 'id' | 'createdAt'> = {
       clientId: formData.clientId,
       name: formData.name,
+      organizationId: '',
       qty: toNumber(String(formData.qty ?? 0)),
       unit: formData.unit || '',
       cost: toNumber(String(formData.cost ?? 0)),
@@ -46,6 +47,7 @@ export default function Products() {
       note: formData.note,
       images: formData.images || [],
       files: formData.files || [],
+      updatedAt: new Date().toISOString(),
     };
 
     try {

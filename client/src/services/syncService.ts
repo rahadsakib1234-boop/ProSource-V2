@@ -329,14 +329,14 @@ class SyncService {
     }
   }
 
-  private snakeToCamel(obj: any) {
-    if (Array.isArray(obj)) return obj.map(v => this.snakeToCamel(v));
+  private snakeToCamel(obj: any): any {
+    if (Array.isArray(obj)) return obj.map((v: any) => this.snakeToCamel(v));
     if (obj !== null && typeof obj === "object") {
-      return Object.keys(obj).reduce((acc, key) => {
+      return Object.keys(obj).reduce((acc: Record<string, any>, key: string) => {
         const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
         acc[camelKey] = this.snakeToCamel(obj[key]);
         return acc;
-      }, {} as any);
+      }, {} as Record<string, any>);
     }
     return obj;
   }

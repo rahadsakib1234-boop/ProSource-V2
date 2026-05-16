@@ -8,6 +8,8 @@ import { Settings } from '@/types';
 
 const SETTINGS_KEY = 'ps_settings';
 const DEFAULT_SETTINGS: Settings = {
+  id: '',
+  organizationId: '',
   name: 'ProSource',
   wa: '',
   email: '',
@@ -22,6 +24,15 @@ const DEFAULT_SETTINGS: Settings = {
     moduleVisibility: {},
   },
   invoiceBranding: {},
+  dashboardBlueprint: [],
+  crmBlueprint: [],
+  operationsBlueprint: [],
+  financeBlueprint: [],
+  reportsBlueprint: [],
+  kpiBlueprint: [],
+  workflowBlueprint: [],
+  actionBlueprint: [],
+  updatedAt: new Date().toISOString(),
 };
 
 export function useSettings() {

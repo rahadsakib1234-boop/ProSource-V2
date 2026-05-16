@@ -73,7 +73,8 @@ interface LeadCardProps {
 }
 
 function LeadCard({ lead, stageColor, stageBg, onDragStart, onEdit, onDelete }: LeadCardProps) {
-  const age = Math.floor((Date.now() - lead.createdAt) / (1000 * 60 * 60 * 24));
+  const createdTs = typeof lead.createdAt === 'string' ? Date.parse(lead.createdAt) : (lead.createdAt as number);
+  const age = Number.isNaN(createdTs) ? 0 : Math.floor((Date.now() - createdTs) / (1000 * 60 * 60 * 24));
 
   return (
     <div

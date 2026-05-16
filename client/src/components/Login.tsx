@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../contexts/AppContext';
 import { INDUSTRY_PROFILES } from '../services/industries';
 import { buildIndustryTemplateSettings } from '../services/templateCustomization';
@@ -16,8 +16,8 @@ export function Login() {
 
   useEffect(() => {
     async function checkAdmin() {
-      const admin la = await auth.hasAdmin();
-      setSetupStep(la ? 'login' : 'admin');
+      const hasAdmin = await auth.hasAdmin();
+      setSetupStep(hasAdmin ? 'login' : 'admin');
     }
     checkAdmin();
   }, [auth]);
