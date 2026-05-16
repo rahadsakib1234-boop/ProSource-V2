@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { User, AuthState } from '../types';
-import { supabase } from '@/lib/supabase';
+import { supabase, type AuthChangeEvent, type Session } from '@/lib/supabase';
 
 export function useAuth() {
   const [authState, setAuthState] = useState<AuthState>({
@@ -19,13 +19,12 @@ export function useAuth() {
       if (error) throw error;
 
       if (data.user) {
-        // In a real app, we would fetch the user's profile and organization from the 'profiles' table
         const user: User = {
           id: data.user.id,
           organizationId: '',
           username: data.user.email || 'User',
           email: data.user.email ?? undefined,
-          role: 'admin', // Default to admin for now, will be fetched from profile in Phase 2
+          role: 'admin',
           createdAt: data.user.created_at ? new Date(data.user.created_at).toISOString() : new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
@@ -100,7 +99,7 @@ export function useAuth() {
   }, [getUsers]);
 
   useEffect(() => {
-    let sub: any = null;
+    let sub: { unsubscribe?: () => void } | null = null;
 
     async function init() {
       const { data: sessionData } = await supabase.auth.getSession();
@@ -122,16 +121,15 @@ export function useAuth() {
       }
       setLoading(false);
 
-      // Subscribe to auth changes
-      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (session?.user) {
+      const { data } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, nextSession: Session | null) => {
+        if (nextSession?.user) {
           const u: User = {
-            id: session.user.id,
+            id: nextSession.user.id,
             organizationId: '',
-            username: session.user.email || 'User',
-            email: session.user.email ?? undefined,
+            username: nextSession.user.email || 'User',
+            email: nextSession.user.email ?? undefined,
             role: 'admin',
-            createdAt: session.user.created_at ? new Date(session.user.created_at).toISOString() : new Date().toISOString(),
+            createdAt: nextSession.user.created_at ? new Date(nextSession.user.created_at).toISOString() : new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           };
           setAuthState({ user: u, isAuthenticated: true });
@@ -140,7 +138,7 @@ export function useAuth() {
         }
       });
 
-      sub = data?.subscription;
+      sub = data?.subscription ?? null;
     }
 
     init();

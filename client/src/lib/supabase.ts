@@ -1,10 +1,28 @@
-import { createClient } from '@supabase/supabase-js';
+const noop = async () => ({ data: null as any, error: null as any });
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase URL or Anon Key is missing. Cloud sync will be disabled.');
+export type AuthChangeEvent = 'SIGNED_IN' | 'SIGNED_OUT' | 'TOKEN_REFRESHED' | 'USER_UPDATED';
+export interface Session {
+  user: {
+    id: string;
+    email?: string | null;
+    created_at?: string | null;
+  };
 }
 
-export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
+const safeAuth = {
+  signInWithPassword: noop,
+  signOut: noop,
+  signUp: noop,
+  getSession: async () => ({ data: { session: null as Session | null }, error: null }),
+  getUser: async () => ({ data: { user: null as Session['user'] | null }, error: null }),
+  onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+};
+
+const safeFunctions = {
+  invoke: noop,
+};
+
+export const supabase = {
+  auth: safeAuth,
+  functions: safeFunctions,
+} as any;

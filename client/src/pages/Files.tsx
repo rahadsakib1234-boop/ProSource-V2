@@ -8,7 +8,7 @@ interface FileItem {
   type: 'image' | 'file';
   name: string;
   relatedProduct?: string;
-  createdAt: number;
+  createdAt: string;
 }
 
 function StatBox({ label, value, hint }: { label: string; value: string; hint?: string }) {
