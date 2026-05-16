@@ -178,20 +178,33 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
   {
     id: 'fitness',
     name: 'Fitness & Wellness',
-    description: 'Memberships, class scheduling, and high-frequency engagement.',
-    icon: '🧘',
-    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Invoices', 'Export'],
+    description: 'Memberships, classes, workouts, and retention-focused wellness operations.',
+    icon: '💪',
+    defaultModules: ['Dashboard', 'Clients', 'Products', 'Leads', 'Pipeline', 'Invoices', 'Export', 'Settings'],
     terminology: {
       clients: 'Members',
-      products: 'Membership Plans',
-      leads: 'Trial Inquiries',
-      invoices: 'Membership Dues',
+      products: 'Classes',
+      leads: 'Trials',
+      invoices: 'Payments',
     },
     customFields: {
       clients: [
-        { id: 'goal', label: 'Fitness Goal', type: 'text' },
-        { id: 'plan', label: 'Current Plan', type: 'select', options: ['Basic', 'Premium', 'Elite'] },
-      ]
+        { id: 'member_id', label: 'Member ID', type: 'text' },
+        { id: 'membership_type', label: 'Membership Type', type: 'select', options: ['Basic', 'Standard', 'Premium', 'VIP'] },
+        { id: 'trainer', label: 'Trainer', type: 'text' },
+        { id: 'expiry_date', label: 'Expiry Date', type: 'date' },
+        { id: 'fitness_goals', label: 'Fitness Goals', type: 'text', placeholder: 'Lose fat, build muscle, improve stamina' },
+      ],
+      products: [
+        { id: 'class_name', label: 'Class Name', type: 'text' },
+        { id: 'trainer', label: 'Trainer', type: 'text' },
+        { id: 'capacity', label: 'Capacity', type: 'number' },
+        { id: 'schedule', label: 'Schedule', type: 'text', placeholder: 'Mon/Wed/Fri 7:00 PM' },
+      ],
+      leads: [
+        { id: 'goal', label: 'Member Goal', type: 'text' },
+        { id: 'trial_date', label: 'Trial Date', type: 'date' },
+      ],
     }
   },
   {
