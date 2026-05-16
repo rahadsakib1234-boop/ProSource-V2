@@ -31,9 +31,18 @@ class AIService {
    */
   async ask(request: AIRequest): Promise<AIResponse> {
     try {
-      // We call the 'ai-assistant' edge function
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) {
+        console.warn('Failed to read Supabase session:', sessionError.message);
+      }
+
+      const headers = sessionData?.session?.access_token
+        ? { Authorization: `Bearer ${sessionData.session.access_token}` }
+        : undefined;
+
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: request,
+        headers,
       });
 
       if (error) throw error;

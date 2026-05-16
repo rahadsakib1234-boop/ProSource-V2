@@ -29,7 +29,13 @@ export function AIAssistant() {
   const getLeadInsight = async () => {
     setLoading(prev => ({ ...prev, leads: true }));
     try {
-      const result = await aiService.analyzeLead(leads.getOpenLeads()[0], leads.leads);
+      const openLeads = leads.getOpenLeads();
+      if (openLeads.length === 0) {
+        setInsights(prev => ({ ...prev, leads: 'No open leads available to analyze.' }));
+        return;
+      }
+
+      const result = await aiService.analyzeLead(openLeads[0], leads.leads);
       setInsights(prev => ({ ...prev, leads: result.content }));
     } catch (err) {
       console.error(err);

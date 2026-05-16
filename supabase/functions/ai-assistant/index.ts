@@ -10,31 +10,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
-const GEMMA_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemma-7b-it:generateContent"; // Example endpoint
+const GEMMA_API_URL = Deno.env.get('GEMMA_API_URL')
+  || "https://generativelanguage.googleapis.com/v1beta/models/gemma-7b-it:generateContent"; // Replace with your chosen model endpoint when available
 
 serve(async (req) => {
   try {
-    // 1. Validate Authorization
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Missing Authorization header' }), { status: 401 });
+    if (authHeader) {
+      const supabaseClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        { global: { headers: { Authorization: authHeader } } }
+      );
+
+      const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+      if (authError || !user) {
+        return new Response(JSON.stringify({ error: 'Unauthorized user' }), { status: 401 });
+      }
     }
 
-    // Initialize Supabase Client with the user's JWT
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    // Verify user session
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
-    if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized user' }), { status: 401 });
-    }
-
-    // 2. Parse Request Body
-    const { prompt, context } = await req.json();
+    const body = await req.json().catch(() => null);
+    const prompt = body?.prompt?.toString().trim();
+    const context = body?.context;
 
     if (!prompt) {
       return new Response(JSON.stringify({ error: 'Prompt is required' }), { status: 400 });
