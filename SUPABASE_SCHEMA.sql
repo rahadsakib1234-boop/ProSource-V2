@@ -4,6 +4,7 @@
 CREATE TABLE organizations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
+  account_type TEXT CHECK (account_type IN ('company', 'personal')) DEFAULT 'company',
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );

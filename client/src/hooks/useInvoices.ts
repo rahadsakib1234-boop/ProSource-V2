@@ -1,18 +1,20 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Invoice } from '@/types';
-import { dbGetAll, dbPut, dbDelete } from '@/services/db';
+import { cloudDb } from '@/services/cloudDb';
 import { generateId } from '@/services/utils';
-import { syncService } from '@/services/syncService';
+import { useAuth } from './useAuth';
 
 export function useInvoices(enabled = true) {
+  const { user } = useAuth();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadInvoices = useCallback(async () => {
+    if (!user?.organizationId) return;
     try {
       setLoading(true);
-      const data = await dbGetAll<Invoice>('invoices');
+      const data = await cloudDb.getAll<Invoice>('invoices', user.organizationId);
       setInvoices(data.sort((a, b) => (b.updatedAt || b.createdAt) > (a.updatedAt || a.createdAt) ? 1 : -1));
       setError(null);
     } catch (err) {
@@ -21,10 +23,11 @@ export function useInvoices(enabled = true) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.organizationId]);
 
   const saveInvoice = useCallback(
     async (invoice: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string; updatedAt?: string }) => {
+      if (!user?.organizationId) throw new Error('No active organization');
       try {
         const invoiceData: Invoice = {
           id: invoice.id || generateId(),
@@ -33,10 +36,7 @@ export function useInvoices(enabled = true) {
           ...invoice,
         } as Invoice;
 
-        await dbPut('invoices', invoiceData);
-
-        const operation = invoice.id ? 'update' : 'create';
-        await syncService.queueChange(operation, 'invoice', invoiceData.id, invoiceData);
+        await cloudDb.put('invoices', invoiceData, user.organizationId);
 
         await loadInvoices();
         return invoiceData;
@@ -45,21 +45,21 @@ export function useInvoices(enabled = true) {
         throw err;
       }
     },
-    [loadInvoices]
+    [loadInvoices, user?.organizationId]
   );
 
   const deleteInvoice = useCallback(
     async (id: string) => {
+      if (!user?.organizationId) throw new Error('No active organization');
       try {
-        await dbDelete('invoices', id);
-        await syncService.queueChange('delete', 'invoice', id, {});
+        await cloudDb.delete('invoices', id, user.organizationId);
         await loadInvoices();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to delete invoice');
         throw err;
       }
     },
-    [loadInvoices]
+    [loadInvoices, user?.organizationId]
   );
 
   const getInvoiceById = useCallback(

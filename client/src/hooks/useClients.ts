@@ -1,18 +1,20 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Client } from '@/types';
-import { dbGetAll, dbPut, dbDelete } from '@/services/db';
+import { cloudDb } from '@/services/cloudDb';
 import { generateId } from '@/services/utils';
-import { syncService } from '@/services/syncService';
+import { useAuth } from './useAuth';
 
 export function useClients(enabled = true) {
+  const { user } = useAuth();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadClients = useCallback(async () => {
+    if (!user?.organizationId) return;
     try {
       setLoading(true);
-      const data = await dbGetAll<Client>('clients');
+      const data = await cloudDb.getAll<Client>('clients', user.organizationId);
       setClients(data);
       setError(null);
     } catch (err) {
@@ -21,10 +23,11 @@ export function useClients(enabled = true) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.organizationId]);
 
   const saveClient = useCallback(
     async (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string; updatedAt?: string }) => {
+      if (!user?.organizationId) throw new Error('No active organization');
       try {
         const clientData: Client = {
           id: client.id || generateId(),
@@ -33,11 +36,7 @@ export function useClients(enabled = true) {
           ...client,
         } as Client;
 
-        await dbPut('clients', clientData);
-
-        // Queue for cloud sync
-        const operation = client.id ? 'update' : 'create';
-        await syncService.queueChange(operation, 'client', clientData.id, clientData);
+        await cloudDb.put('clients', clientData, user.organizationId);
 
         await loadClients();
         return clientData;
@@ -46,24 +45,21 @@ export function useClients(enabled = true) {
         throw err;
       }
     },
-    [loadClients]
+    [loadClients, user?.organizationId]
   );
 
   const deleteClient = useCallback(
     async (id: string) => {
+      if (!user?.organizationId) throw new Error('No active organization');
       try {
-        await dbDelete('clients', id);
-
-        // Queue for cloud sync
-        await syncService.queueChange('delete', 'client', id, {});
-
+        await cloudDb.delete('clients', id, user.organizationId);
         await loadClients();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to delete client');
         throw err;
       }
     },
-    [loadClients]
+    [loadClients, user?.organizationId]
   );
 
   const getClientById = useCallback((id: string) => {

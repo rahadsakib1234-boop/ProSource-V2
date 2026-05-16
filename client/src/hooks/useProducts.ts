@@ -1,18 +1,20 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Product } from '@/types';
-import { dbGetAll, dbPut, dbDelete } from '@/services/db';
+import { cloudDb } from '@/services/cloudDb';
 import { generateId } from '@/services/utils';
-import { syncService } from '@/services/syncService';
+import { useAuth } from './useAuth';
 
 export function useProducts(enabled = true) {
+  const { user } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadProducts = useCallback(async () => {
+    if (!user?.organizationId) return;
     try {
       setLoading(true);
-      const data = await dbGetAll<Product>('products');
+      const data = await cloudDb.getAll<Product>('products', user.organizationId);
       setProducts(data);
       setError(null);
     } catch (err) {
@@ -21,10 +23,11 @@ export function useProducts(enabled = true) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.organizationId]);
 
   const saveProduct = useCallback(
     async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string; updatedAt?: string }) => {
+      if (!user?.organizationId) throw new Error('No active organization');
       try {
         const productData: Product = {
           id: product.id || generateId(),
@@ -33,10 +36,7 @@ export function useProducts(enabled = true) {
           ...product,
         } as Product;
 
-        await dbPut('products', productData);
-
-        const operation = product.id ? 'update' : 'create';
-        await syncService.queueChange(operation, 'product', productData.id, productData);
+        await cloudDb.put('products', productData, user.organizationId);
 
         await loadProducts();
         return productData;
@@ -45,21 +45,21 @@ export function useProducts(enabled = true) {
         throw err;
       }
     },
-    [loadProducts]
+    [loadProducts, user?.organizationId]
   );
 
   const deleteProduct = useCallback(
     async (id: string) => {
+      if (!user?.organizationId) throw new Error('No active organization');
       try {
-        await dbDelete('products', id);
-        await syncService.queueChange('delete', 'product', id, {});
+        await cloudDb.delete('products', id, user.organizationId);
         await loadProducts();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to delete product');
         throw err;
       }
     },
-    [loadProducts]
+    [loadProducts, user?.organizationId]
   );
 
   const getProductsByClientId = useCallback(

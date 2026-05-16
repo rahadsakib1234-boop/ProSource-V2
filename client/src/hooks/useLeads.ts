@@ -1,18 +1,20 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Lead } from '@/types';
-import { dbGetAll, dbPut, dbDelete } from '@/services/db';
+import { cloudDb } from '@/services/cloudDb';
 import { generateId } from '@/services/utils';
-import { syncService } from '@/services/syncService';
+import { useAuth } from './useAuth';
 
 export function useLeads(enabled = true) {
+  const { user } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const loadLeads = useCallback(async () => {
+    if (!user?.organizationId) return;
     try {
       setLoading(true);
-      const data = await dbGetAll<Lead>('leads');
+      const data = await cloudDb.getAll<Lead>('leads', user.organizationId);
       setLeads(data);
       setError(null);
     } catch (err) {
@@ -21,10 +23,11 @@ export function useLeads(enabled = true) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [user?.organizationId]);
 
   const saveLead = useCallback(
     async (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string; updatedAt?: string }) => {
+      if (!user?.organizationId) throw new Error('No active organization');
       try {
         const leadData: Lead = {
           id: lead.id || generateId(),
@@ -33,10 +36,7 @@ export function useLeads(enabled = true) {
           ...lead,
         } as Lead;
 
-        await dbPut('leads', leadData);
-
-        const operation = lead.id ? 'update' : 'create';
-        await syncService.queueChange(operation, 'lead', leadData.id, leadData);
+        await cloudDb.put('leads', leadData, user.organizationId);
 
         await loadLeads();
         return leadData;
@@ -45,21 +45,21 @@ export function useLeads(enabled = true) {
         throw err;
       }
     },
-    [loadLeads]
+    [loadLeads, user?.organizationId]
   );
 
   const deleteLead = useCallback(
     async (id: string) => {
+      if (!user?.organizationId) throw new Error('No active organization');
       try {
-        await dbDelete('leads', id);
-        await syncService.queueChange('delete', 'lead', id, {});
+        await cloudDb.delete('leads', id, user.organizationId);
         await loadLeads();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to delete lead');
         throw err;
       }
     },
-    [loadLeads]
+    [loadLeads, user?.organizationId]
   );
 
   const getLeadById = useCallback(
