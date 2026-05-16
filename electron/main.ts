@@ -3,10 +3,12 @@
  * Handles window creation, IPC communication, and licensing
  */
 
+import 'dotenv/config';
 import { app, BrowserWindow, ipcMain, Menu, dialog } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import * as fs from 'fs';
+import { createClient } from '@supabase/supabase-js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -110,6 +112,71 @@ ipcMain.handle('license:clear', async () => {
       success: false,
       message: err instanceof Error ? err.message : 'Failed to clear license',
     };
+  }
+});
+
+ipcMain.handle('auth:registerAdmin', async (_event, email: string, password: string) => {
+  try {
+    const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !serviceRoleKey) {
+      throw new Error('Missing Supabase service environment variables. Set SUPABASE_SERVICE_ROLE_KEY and SUPABASE_URL.');
+    }
+
+    const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { persistSession: false },
+    });
+
+    const { data: authData, error: authError } = await serviceClient.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { role: 'admin' },
+    });
+
+    if (authError) {
+      throw authError;
+    }
+
+    const user = authData.user;
+    if (!user?.id) {
+      throw new Error('Failed to create Supabase user.');
+    }
+
+    const organizationName = email.split('@')[0] || 'ProSource Organization';
+    const orgId = crypto.randomUUID();
+
+    const { data: orgData, error: orgError } = await serviceClient
+      .from('organizations')
+      .insert({ id: orgId, name: organizationName })
+      .select()
+      .single();
+
+    if (orgError) {
+      throw orgError;
+    }
+
+    const { data: profileData, error: profileError } = await serviceClient
+      .from('profiles')
+      .insert({
+        id: user.id,
+        organization_id: orgId,
+        username: organizationName,
+        role: 'admin',
+      })
+      .select()
+      .single();
+
+    if (profileError) {
+      throw profileError;
+    }
+
+    return { success: true, organizationId: orgId };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to register admin';
+    console.error('auth:registerAdmin failed:', message);
+    return { success: false, error: message };
   }
 });
 

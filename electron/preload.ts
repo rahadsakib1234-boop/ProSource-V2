@@ -13,6 +13,11 @@ const api = {
     clear: () => ipcRenderer.invoke('license:clear'),
   },
 
+  // Auth helpers
+  auth: {
+    registerAdmin: (email: string, password: string) => ipcRenderer.invoke('auth:registerAdmin', email, password),
+  },
+
   // File operations
   file: {
     export: (data: any, filename: string) => ipcRenderer.invoke('file:export', data, filename),

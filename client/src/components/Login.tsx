@@ -15,12 +15,14 @@ export function Login() {
   const [setupStep, setSetupStep] = useState<'admin' | 'industry' | 'login' | 'loading'>('loading');
 
   useEffect(() => {
-    async function checkAdmin() {
-      const hasAdmin = await auth.hasAdmin();
-      setSetupStep(hasAdmin ? 'login' : 'admin');
+    if (settings.loading || auth.loading) {
+      setSetupStep('loading');
+      return;
     }
-    checkAdmin();
-  }, [auth]);
+
+    const configured = Boolean(settings.settings.isConfigured);
+    setSetupStep(configured ? 'login' : 'admin');
+  }, [auth.loading, settings.loading, settings.settings.isConfigured]);
 
   const currentProfile = INDUSTRY_PROFILES.find((profile) => profile.id === selectedIndustry) || INDUSTRY_PROFILES[0];
 
@@ -30,11 +32,19 @@ export function Login() {
   const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const success = await auth.registerAdmin(email, password);
-    if (!success) {
-      setError('Failed to create the admin account.');
+    const result = await auth.registerAdmin(email, password);
+    if (!result.success) {
+      setError(result.error || 'Failed to create the admin account.');
       return;
     }
+
+    if (result.organizationId) {
+      settings.saveSettings({
+        ...settings.settings,
+        organizationId: result.organizationId,
+      });
+    }
+
     setSetupStep('industry');
   };
 

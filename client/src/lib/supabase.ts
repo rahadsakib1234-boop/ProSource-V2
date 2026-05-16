@@ -1,28 +1,13 @@
-const noop = async () => ({ data: null as any, error: null as any });
+import { createClient, type SupabaseClient, type AuthChangeEvent as SupabaseAuthChangeEvent, type Session as SupabaseSession } from '@supabase/supabase-js';
 
-export type AuthChangeEvent = 'SIGNED_IN' | 'SIGNED_OUT' | 'TOKEN_REFRESHED' | 'USER_UPDATED';
-export interface Session {
-  user: {
-    id: string;
-    email?: string | null;
-    created_at?: string | null;
-  };
+export type AuthChangeEvent = SupabaseAuthChangeEvent;
+export type Session = SupabaseSession;
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error('Missing Supabase environment variables: VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set.');
 }
 
-const safeAuth = {
-  signInWithPassword: noop,
-  signOut: noop,
-  signUp: noop,
-  getSession: async () => ({ data: { session: null as Session | null }, error: null }),
-  getUser: async () => ({ data: { user: null as Session['user'] | null }, error: null }),
-  onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
-};
-
-const safeFunctions = {
-  invoke: noop,
-};
-
-export const supabase = {
-  auth: safeAuth,
-  functions: safeFunctions,
-} as any;
+export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
