@@ -210,20 +210,32 @@ export const INDUSTRY_PROFILES: IndustryProfile[] = [
   {
     id: 'nonprofit',
     name: 'Nonprofits',
-    description: 'Donor management, fundraising campaigns, and impact reporting.',
+    description: 'Donor management, fundraising campaigns, volunteer coordination, and impact reporting.',
     icon: '🤝',
-    defaultModules: ['Dashboard', 'Clients', 'Leads', 'Export'],
+    defaultModules: ['Dashboard', 'Clients', 'Products', 'Leads', 'Pipeline', 'Invoices', 'Export', 'Settings'],
     terminology: {
       clients: 'Donors',
-      products: 'Programs',
-      leads: 'Fundraising Leads',
-      invoices: 'Donation Receipts',
+      products: 'Campaigns',
+      leads: 'Volunteers',
+      invoices: 'Donations',
     },
     customFields: {
       clients: [
-        { id: 'total_donated', label: 'Lifetime Donation', type: 'currency' },
-        { id: 'volunteer', label: 'Is Volunteer?', type: 'select', options: ['Yes', 'No'] },
-      ]
+        { id: 'donation_preferences', label: 'Donation Preferences', type: 'text', placeholder: 'One-time, monthly, in-kind...' },
+        { id: 'last_donation', label: 'Last Donation Date', type: 'date' },
+        { id: 'campaign_affinity', label: 'Campaign Affinity', type: 'text' },
+      ],
+      products: [
+        { id: 'campaign_name', label: 'Campaign Name', type: 'text', required: true },
+        { id: 'goal_amount', label: 'Goal Amount', type: 'currency', required: true },
+        { id: 'start_date', label: 'Start Date', type: 'date' },
+        { id: 'end_date', label: 'End Date', type: 'date' },
+      ],
+      leads: [
+        { id: 'availability', label: 'Volunteer Availability', type: 'text', placeholder: 'Weekends, evenings...' },
+        { id: 'skills', label: 'Volunteer Skills', type: 'text', placeholder: 'Event setup, outreach, design...' },
+        { id: 'preferred_event', label: 'Preferred Event Type', type: 'text' },
+      ],
     }
   }
 ];

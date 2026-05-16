@@ -163,6 +163,7 @@ export interface IndustryProfile {
     leads: string;
     invoices: string;
   };
+  navLabels?: Partial<Record<'dashboard' | 'clients' | 'products' | 'leads' | 'pipeline' | 'invoices' | 'users' | 'reports' | 'files' | 'settings', string>>;
   customFields: {
     clients?: CustomFieldDefinition[];
     products?: CustomFieldDefinition[];
