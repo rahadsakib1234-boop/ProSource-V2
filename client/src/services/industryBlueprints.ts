@@ -42,13 +42,13 @@ export const INDUSTRY_BLUEPRINTS: Record<string, IndustryBlueprint> = {
   },
   finance: {
     dashboard: ['Active Policies', 'Claims Pending', 'Revenue', 'Risk Alerts', 'Renewals Due'],
-    crm: ['Clients', 'Agents', 'Investors'],
+    crm: ['Clients', 'Agents', 'Policy Holders'],
     operations: ['Policies', 'Claims', 'Loans', 'Risk Assessments'],
-    finance: ['Premium Tracking', 'Commissions', 'Payment History', 'Payouts'],
+    finance: ['Payments', 'Premiums', 'Commissions', 'Payouts', 'Balances'],
     reports: ['Risk Analysis', 'Claim Trends', 'Client Lifetime Value', 'Renewal Forecast'],
-    kpis: ['Claims Pending', 'Premium Collected', 'Commission Earned', 'Risk Score'],
+    kpis: ['Active Policies', 'Claims Pending', 'Revenue', 'Risk Alerts'],
     workflows: ['Lead → Risk Review → Policy Issued → Premium Collected → Renewal'],
-    actions: ['Issue Policy', 'Approve Claim', 'Record Premium', 'Flag Risk', 'Renew Coverage'],
+    actions: ['Create Policy', 'Open Claim', 'Record Payment', 'Run Risk Check', 'Send Renewal Reminder'],
   },
   retail: {
     dashboard: ['Sales Today', 'Orders Pending', 'Inventory Alerts', 'Best Sellers', 'Refund Queue'],
@@ -109,7 +109,7 @@ export const INDUSTRY_BLUEPRINTS: Record<string, IndustryBlueprint> = {
     kpis: ['Donation Growth', 'Volunteer Retention', 'Campaign Conversion', 'Funds Raised'],
     workflows: ['Supporter → Donation → Campaign Follow-up → Impact Report'],
     actions: ['Launch Campaign', 'Log Donation', 'Schedule Volunteer', 'Track Grant', 'Send Thank-you'],
-  },
+  }
 };
 
 export function getIndustryBlueprint(industryId: string): IndustryBlueprint {
