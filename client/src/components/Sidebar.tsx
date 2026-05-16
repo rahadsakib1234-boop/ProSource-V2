@@ -34,8 +34,8 @@ export function Sidebar() {
     { id: 'Pipeline', label: 'Operations', icon: '🔄', path: '/pipeline' },
     { id: 'Invoices', label: terms?.invoices || 'Finance', icon: '🧾', path: '/invoices' },
     { id: 'Users', label: 'Team', icon: '👥', path: '/users' },
-    { id: 'Reports', label: 'Reports', icon: '📈', path: '/export' },
-    { id: 'Files', label: 'Files', icon: '🗂️', path: '/export' },
+    { id: 'Reports', label: 'Reports', icon: '📈', path: '/reports' },
+    { id: 'Files', label: 'Files', icon: '🗂️', path: '/files' },
     { id: 'Settings', label: 'Settings', icon: '⚙️', path: '/settings' },
   ]
     .filter(item => isModuleVisible(settings.settings, item.id))

@@ -16,6 +16,8 @@ import Pipeline from "./pages/Pipeline";
 import Invoices from "./pages/Invoices";
 import Currency from "./pages/Currency";
 import Export from "./pages/Export";
+import Reports from "./pages/Reports";
+import Files from "./pages/Files";
 import Settings from "./pages/Settings";
 import UserManagement from "./pages/UserManagement";
 import EmployeeManagement from "./pages/EmployeeManagement";
@@ -33,8 +35,8 @@ function Router() {
       <Route path="/invoices" component={Invoices} />
       <Route path="/currency" component={Currency} />
       <Route path="/export" component={Export} />
-      <Route path="/reports" component={Export} />
-      <Route path="/files" component={Export} />
+      <Route path="/reports" component={Reports} />
+      <Route path="/files" component={Files} />
       <Route path="/settings" component={Settings} />
       <Route path="/users" component={UserManagement} />
       <Route path="/employees" component={EmployeeManagement} />
