@@ -77,55 +77,33 @@ export function useAuth() {
 
   const registerAdmin = useCallback(async (email: string, password: string): Promise<RegisterAdminResult> => {
     try {
-      const electronRegister = typeof window !== 'undefined' ? window.electronAPI?.auth?.registerAdmin : undefined;
-      if (electronRegister) {
-        const result = await electronRegister(email, password);
-        if (!result.success) {
-          return { success: false, error: result.error ?? 'Failed to create admin account.' };
-        }
-
-        const signedIn = await login(email, password);
-        if (!signedIn) {
-          return { success: false, error: 'Admin account was created, but sign-in failed.' };
-        }
-
-        return { success: true, organizationId: result.organizationId };
-      }
-
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+      const { data, error } = await supabase.functions.invoke('register-admin', {
+        body: { email, password },
       });
 
       if (error) throw error;
-
-      if (data.user) {
-        const user: User = {
-          id: data.user.id,
-          organizationId: '',
-          username: data.user.email || 'Admin',
-          email: data.user.email ?? undefined,
-          role: 'admin',
-          createdAt: data.user.created_at ? new Date(data.user.created_at).toISOString() : new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-
-        setAuthState({ user, isAuthenticated: true });
-        return { success: true };
+      if (!data || !data.success) {
+        return { success: false, error: data?.error ?? 'Failed to create admin account.' };
       }
-      return { success: false, error: 'No user was created.' };
+
+      const signedIn = await login(email, password);
+      if (!signedIn) {
+        return { success: false, error: 'Admin account was created, but sign-in failed.' };
+      }
+
+      return { success: true, organizationId: data.organizationId };
     } catch (error) {
       console.error('Admin registration failed:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Unknown registration error' };
     }
   }, [login]);
 
-  const addUser = useCallback(async (email: string, password: string, role: 'admin' | 'employee') => {
+  const addUser = useCallback(async (_email: string, _password: string, _role: 'admin' | 'employee') => {
     console.warn('addUser now requires a server-side administrative API to avoid exposing service role keys.');
     return false;
   }, []);
 
-  const deleteUser = useCallback((id: string) => {
+  const deleteUser = useCallback((_id: string) => {
     console.warn('deleteUser now requires a server-side administrative API.');
     return false;
   }, []);

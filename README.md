@@ -1,107 +1,90 @@
 # ProSource CRM v2
 
-ProSource CRM is a local-first desktop CRM for sourcing businesses and similar sales workflows. It runs in Electron with a React frontend and stores data locally in IndexedDB, with built-in backup, restore, export, login, role-based access, and industry-aware workflow views.
+ProSource CRM is a sophisticated local-first desktop CRM designed for sourcing businesses and complex sales workflows. It combines the speed and privacy of local storage with cloud-enhanced capabilities for authentication and AI-driven business intelligence.
 
-## What it does
+## 🚀 Core Concept: Hybrid Local-First Architecture
 
-- Desktop app for Windows, macOS, and Linux
-- Local-first storage with IndexedDB
-- Login and role-based access for admin and employee users
-- Client, product, lead, and invoice management
-- Pipeline board for lead tracking
-- Export tools for CSV, JSON backup, and Excel reports
-- Backup list, restore flow, and local data recovery support
-- Industry settings for adapting the UI to different business types
+ProSource CRM employs a hybrid architecture to provide the best of both worlds:
+- **Local-First Data**: All core CRM data (clients, leads, products, invoices) is stored locally using **IndexedDB**. This ensures instantaneous load times, offline availability, and maximum data privacy.
+- **Cloud-Enhanced Services**: Integration with **Supabase** provides secure authentication, role-based access control, and a powerful bridge to AI services via Edge Functions.
 
-## Current architecture
+## ✨ Key Features
 
-- **Frontend**: React + TypeScript + Vite
-- **Desktop shell**: Electron
-- **Storage**: IndexedDB with snapshot persistence
-- **Exports**: JSON, CSV, and Excel
-- **State**: React hooks and local app context
+### 🤖 AI-Powered Intelligence
+- **AI Assistant**: An integrated AI companion that can analyze your business data in real-time.
+- **Lead Analysis**: Get AI-suggested next steps to close deals based on lead history and pipeline state.
+- **Financial Insights**: Automated 2-sentence summaries of business health derived from invoice and client data.
+- **Context-Aware Prompting**: The AI is provided with relevant CRM snapshots to give grounded, accurate business advice.
 
-## Features
+### 💼 Comprehensive CRM Suite
+- **Lead & Pipeline Management**: Kanban-style board with drag-and-drop stages and industry-aware labeling.
+- **Client & Product Tracking**: Detailed management of your customer base and product catalog.
+- **Invoicing & Financials**: Professional invoice tracking with multi-currency support.
+- **Industry Blueprints**: Adapt the entire UI and workflow based on the specific business type you are sourcing.
 
-### Core CRM
-- Clients
-- Products
-- Leads
-- Invoices
-- Currency support
-- Search and filtering
+### 👥 Team & Access Control
+- **Role-Based Access**: Secure login with distinct permissions for Admin and Employee roles.
+- **User Management**: Tools for managing team members and their access levels.
 
-### Team tools
-- Secure login
-- Admin/employee roles
-- User management
-- Employee management UI
+### 💾 Data Sovereignty & Recovery
+- **Local Backups**: One-click JSON backup and restore flow to prevent data loss.
+- **Flexible Exports**: Export critical data to CSV or generate professional Excel reports.
+- **Snapshot Persistence**: Robust local state management ensuring your work is always saved.
 
-### Pipeline
-- Kanban-style lead board
-- Drag-and-drop stage movement
-- Industry-aware stage labels
+## 🛠 Technical Stack
 
-### Backup and export
-- JSON backup export
-- Restore from backup files
-- Backup list modal
-- CSV exports for major data tables
-- Excel exports for client-safe and private reporting
+- **Frontend**: React 19 + TypeScript + Vite
+- **Styling**: Tailwind CSS 4 + Lucide React
+- **Desktop Shell**: Electron
+- **Local Storage**: IndexedDB (via `idb` library)
+- **Backend/Auth**: Supabase (PostgreSQL, Auth, Edge Functions)
+- **AI Model**: Gemma (accessed via Supabase Edge Functions)
 
-## Installation
+## ⚙️ Setup & Installation
 
+### Local Development
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/rahadsakib1234-boop/ProSource-V2.git
+   cd ProSource-V2
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pnpm install
+   ```
+
+3. **Environment Configuration**:
+   Copy `.env.example` to `.env` and configure the following:
+   - `VITE_SUPABASE_URL`: Your Supabase project URL
+   - `VITE_SUPABASE_ANON_KEY`: Your Supabase anonymous key
+   - `GEMMA_API_KEY`: Your API key for the Gemma AI model
+
+4. **Run in development mode**:
+   ```bash
+   pnpm run dev
+   ```
+
+### Production Build
 ```bash
-git clone https://github.com/rahadsakib1234-boop/ProSource-V2.git
-cd ProSource-V2
-pnpm install
+pnpm run check  # Type check
+pnpm run build  # Build web assets
 ```
 
-## Development
+## 🚢 Deployment
 
+### Web Deployment
+The frontend is configured for Vercel. On push to `main`, GitHub Actions automatically deploy the application.
+**Required Vercel Secrets**: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
+
+### AI Assistant Deployment
+The AI backend is deployed as a Supabase Edge Function. Use the provided script to deploy:
 ```bash
-pnpm run dev
+pnpm run deploy:ai-assistant
 ```
+**Required Supabase Secret**: `GEMMA_API_KEY`.
 
-## Production build
-
-```bash
-pnpm run check
-pnpm run build
-```
-
-## Deployment
-
-The frontend is configured for Vercel static hosting. On push to `main`, GitHub Actions will run the test suite and deploy the app.
-
-Required GitHub secrets:
-- `VERCEL_TOKEN`
-- `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID`
-
-Required environment variables for local development:
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-- `GEMMA_API_KEY`
-
-Copy `.env.example` to `.env` and fill in the values before running locally.
-
-Required Vercel environment variables:
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_ANON_KEY`
-
-Required Supabase function secret:
-- `GEMMA_API_KEY`
-
-For local development, copy `.env.example` to `.env` and fill in the values.
-
-## Important notes
-
-- Data is stored locally in the browser/desktop app environment.
-- Backups are local backup files handled by the app.
-- The frontend is built for Vercel deployment, and the project includes Supabase schema and AI function support for backend integration.
-- True Supabase backend deployment should be handled separately using the Supabase dashboard or CLI, with the schema in `SUPABASE_SCHEMA.sql` and functions in `supabase/functions/ai-assistant/`.
-
-## Status
-
-This codebase is now honest about what it already does well: a polished local CRM with strong desktop workflow, export, and recovery tools.
+## 📝 Important Notes
+- **Data Privacy**: Your core business data never leaves your machine unless you explicitly export a backup or interact with the AI assistant.
+- **Schema**: The database structure is defined in `SUPABASE_SCHEMA.sql`.
+- **Local-First**: If you are using the app in the browser, data is tied to the browser's IndexedDB instance. For a persistent desktop experience, use the Electron build.
