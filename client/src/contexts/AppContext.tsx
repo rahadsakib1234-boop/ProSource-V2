@@ -1,8 +1,3 @@
-/**
- * AppContext
- * Global application state and data management
- */
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useClients } from '@/hooks/useClients';
 import { useProducts } from '@/hooks/useProducts';
@@ -12,6 +7,7 @@ import { useSettings } from '@/hooks/useSettings';
 import { useAuth } from '@/hooks/useAuth';
 import { initDB } from '@/services/db';
 import { fetchExchangeRates } from '@/services/currency';
+import { syncService } from '@/services/syncService';
 
 interface AppContextType {
   dbReady: boolean;
@@ -67,6 +63,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     loadRates();
   }, []);
+
+  useEffect(() => {
+    if (dbReady && auth.isAuthenticated) {
+      syncService.fullHydrate().then(() => {
+        // Trigger a refresh of the domain hooks if needed
+        // (In this architecture, the hooks rely on dbReady,
+        // so we might need a way to force them to re-fetch from IndexedDB)
+      });
+    }
+  }, [dbReady, auth.isAuthenticated]);
 
   const value: AppContextType = {
     dbReady,

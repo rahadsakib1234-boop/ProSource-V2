@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Lead } from '@/types';
 import { dbGetAll, dbPut, dbDelete } from '@/services/db';
 import { generateId } from '@/services/utils';
+import { syncService } from '@/services/syncService';
 
 export function useLeads(enabled = true) {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -23,15 +24,20 @@ export function useLeads(enabled = true) {
   }, []);
 
   const saveLead = useCallback(
-    async (lead: Omit<Lead, 'id' | 'createdAt'> & { id?: string; createdAt?: number }) => {
+    async (lead: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string; updatedAt?: string }) => {
       try {
         const leadData: Lead = {
           id: lead.id || generateId(),
-          createdAt: lead.createdAt || Date.now(),
+          createdAt: lead.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           ...lead,
         } as Lead;
 
         await dbPut('leads', leadData);
+
+        const operation = lead.id ? 'update' : 'create';
+        await syncService.queueChange(operation, 'lead', leadData.id, leadData);
+
         await loadLeads();
         return leadData;
       } catch (err) {
@@ -46,6 +52,7 @@ export function useLeads(enabled = true) {
     async (id: string) => {
       try {
         await dbDelete('leads', id);
+        await syncService.queueChange('delete', 'lead', id, {});
         await loadLeads();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to delete lead');

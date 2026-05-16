@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Product } from '@/types';
 import { dbGetAll, dbPut, dbDelete } from '@/services/db';
 import { generateId } from '@/services/utils';
+import { syncService } from '@/services/syncService';
 
 export function useProducts(enabled = true) {
   const [products, setProducts] = useState<Product[]>([]);
@@ -23,15 +24,20 @@ export function useProducts(enabled = true) {
   }, []);
 
   const saveProduct = useCallback(
-    async (product: Omit<Product, 'id' | 'createdAt'> & { id?: string; createdAt?: number }) => {
+    async (product: Omit<Product, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string; updatedAt?: string }) => {
       try {
         const productData: Product = {
           id: product.id || generateId(),
-          createdAt: product.createdAt || Date.now(),
+          createdAt: product.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           ...product,
         } as Product;
 
         await dbPut('products', productData);
+
+        const operation = product.id ? 'update' : 'create';
+        await syncService.queueChange(operation, 'product', productData.id, productData);
+
         await loadProducts();
         return productData;
       } catch (err) {
@@ -46,6 +52,7 @@ export function useProducts(enabled = true) {
     async (id: string) => {
       try {
         await dbDelete('products', id);
+        await syncService.queueChange('delete', 'product', id, {});
         await loadProducts();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to delete product');

@@ -1,9 +1,12 @@
 import { openDB, DBSchema, IDBPDatabase } from "idb";
 import { clearAllData, dbGetAll, dbPut } from "@/services/db";
 import type { Client, Invoice, Lead, Product, Settings } from "@/types";
+import { supabase } from "@/lib/supabase";
 
 const SETTINGS_KEY = "ps_settings";
 const DEFAULT_SETTINGS: Settings = {
+  id: crypto.randomUUID(),
+  organizationId: "",
   name: "ProSource",
   wa: "",
   email: "",
@@ -12,21 +15,23 @@ const DEFAULT_SETTINGS: Settings = {
   industry: "sourcing",
   isConfigured: false,
   authEnabled: false,
+  updatedAt: new Date().toISOString(),
 };
 
 export interface SyncState {
   isOnline: boolean;
   isSyncing: boolean;
-  lastSyncTimestamp: number | null;
+  lastSyncTimestamp: string | null;
   pendingChanges: number;
   failedChanges: number;
   syncError?: string;
+  isHydrated: boolean;
 }
 
 interface SyncQueueItem {
   id: string;
   operation: "create" | "update" | "delete";
-  entityType: "client" | "product" | "lead" | "invoice";
+  entityType: "client" | "product" | "lead" | "invoice" | "settings";
   entityId: string;
   payload: Record<string, any>;
   localUpdatedAt: number;
@@ -113,6 +118,7 @@ class SyncService {
     lastSyncTimestamp: null,
     pendingChanges: 0,
     failedChanges: 0,
+    isHydrated: false,
   };
   private listeners: Set<(state: SyncState) => void> = new Set();
   private syncInterval: ReturnType<typeof setInterval> | null = null;
@@ -156,7 +162,7 @@ class SyncService {
 
   async queueChange(
     operation: "create" | "update" | "delete",
-    entityType: "client" | "product" | "lead" | "invoice",
+    entityType: "client" | "product" | "lead" | "invoice" | "settings",
     entityId: string,
     payload: Record<string, any>
   ) {
@@ -191,15 +197,59 @@ class SyncService {
     this.notifyListeners();
 
     try {
+      // 1. Ensure we have a valid session and organization
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No authenticated user found.");
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("organization_id")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.organization_id) throw new Error("No organization associated with this user.");
+      const orgId = profile.organization_id;
+
+      // 2. Process Outbound Queue
       const pendingItems = await this.getQueueItemsByStatus("pending");
       if (pendingItems.length > 0) {
         for (const item of pendingItems) {
+          const tableMap: Record<string, string> = {
+            client: "clients",
+            product: "products",
+            lead: "leads",
+            invoice: "invoices",
+            settings: "settings",
+          };
+          const table = tableMap[item.entityType];
+
+          if (item.operation === "create" || item.operation === "update") {
+            const { error } = await supabase
+              .from(table)
+              .upsert({
+                ...item.payload,
+                id: item.entityId,
+                organization_id: orgId,
+                updated_at: new Date().toISOString()
+              });
+            if (error) throw error;
+          } else if (item.operation === "delete") {
+            const { error } = await supabase
+              .from(table)
+              .delete()
+              .eq("id", item.entityId);
+            if (error) throw error;
+          }
+
           item.status = "synced";
           await this.db!.put("syncQueue", item);
         }
       }
 
-      this.syncState.lastSyncTimestamp = Date.now();
+      // 3. Process Inbound Updates (Delta Sync)
+      await this.fetchRemoteUpdates(orgId);
+
+      this.syncState.lastSyncTimestamp = new Date().toISOString();
       this.syncState.syncError = undefined;
       await this.updatePendingCount();
     } catch (error) {
@@ -209,6 +259,97 @@ class SyncService {
       this.syncState.isSyncing = false;
       this.notifyListeners();
     }
+  }
+
+  async fetchRemoteUpdates(orgId: string) {
+    const lastSync = this.syncState.lastSyncTimestamp;
+    const tables = ["clients", "products", "leads", "invoices", "settings"];
+
+    for (const table of tables) {
+      let query = supabase
+        .from(table)
+        .select("*")
+        .eq("organization_id", orgId);
+
+      if (lastSync) {
+        query = query.gt("updated_at", lastSync);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      if (data) {
+        for (const record of data) {
+          // Convert snake_case from SQL to camelCase for the frontend
+          const camelCaseRecord = this.snakeToCamel(record);
+          await dbPut(this.mapTableToStore(table), camelCaseRecord);
+        }
+      }
+    }
+  }
+
+  async fullHydrate() {
+    await this.ensureDb();
+    if (this.syncState.isHydrated) return;
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("organization_id")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.organization_id) return;
+      const orgId = profile.organization_id;
+
+      const tables = ["clients", "products", "leads", "invoices", "settings"];
+      for (const table of tables) {
+        const { data, error } = await supabase
+          .from(table)
+          .select("*")
+          .eq("organization_id", orgId);
+
+        if (error) throw error;
+
+        if (data) {
+          for (const record of data) {
+            await dbPut(this.mapTableToStore(table), this.snakeToCamel(record));
+          }
+        }
+      }
+
+      this.syncState.isHydrated = true;
+      await this.updatePendingCount();
+      this.notifyListeners();
+    } catch (error) {
+      console.error("Hydration failed:", error);
+    }
+  }
+
+  private snakeToCamel(obj: any) {
+    if (Array.isArray(obj)) return obj.map(v => this.snakeToCamel(v));
+    if (obj !== null && typeof obj === "object") {
+      return Object.keys(obj).reduce((acc, key) => {
+        const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
+        acc[camelKey] = this.snakeToCamel(obj[key]);
+        return acc;
+      }, {} as any);
+    }
+    return obj;
+  }
+
+  private mapTableToStore(table: string): string {
+    const map: Record<string, string> = {
+      clients: "clients",
+      products: "products",
+      leads: "leads",
+      invoices: "invoices",
+      settings: "settings",
+    };
+    return map[table] || table;
   }
 
   async getBackups() {
@@ -264,7 +405,7 @@ class SyncService {
     }
 
     saveLocalSettings(snapshot.settings ?? { ...DEFAULT_SETTINGS });
-    this.syncState.lastSyncTimestamp = Date.now();
+    this.syncState.lastSyncTimestamp = new Date().toISOString();
     await this.updatePendingCount();
     this.notifyListeners();
 
@@ -274,7 +415,7 @@ class SyncService {
   async deleteBackup(backupId: string) {
     await this.ensureDb();
     await this.db!.delete("backups", backupId);
-    return { deleted: true };
+    return true;
   }
 
   async downloadBackup(backupId: string) {

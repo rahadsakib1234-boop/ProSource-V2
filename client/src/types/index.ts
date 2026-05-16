@@ -5,6 +5,7 @@
 
 export interface Client {
   id: string;
+  organizationId: string;
   name: string;
   phone?: string;
   email?: string;
@@ -13,11 +14,13 @@ export interface Client {
   currency: string;
   notes?: string;
   customData?: Record<string, any>;
-  createdAt: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Product {
   id: string;
+  organizationId: string;
   clientId: string;
   name: string;
   qty: number;
@@ -35,11 +38,13 @@ export interface Product {
   images?: string[];
   files?: string[];
   customData?: Record<string, any>;
-  createdAt: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Lead {
   id: string;
+  organizationId: string;
   name: string;
   contact?: string;
   product?: string;
@@ -51,11 +56,13 @@ export interface Lead {
   notes?: string;
   convertedToClientId?: string;
   customData?: Record<string, any>;
-  createdAt: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Invoice {
   id: string;
+  organizationId: string;
   num: string;
   clientId: string;
   issueDate: string;
@@ -70,8 +77,8 @@ export interface Invoice {
   taxAmt: number;
   total: number;
   products: InvoiceProduct[];
-  createdAt: number;
-  updatedAt: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface InvoiceProduct {
@@ -89,6 +96,8 @@ export interface Currency {
 }
 
 export interface Settings {
+  id: string;
+  organizationId: string;
   name: string;
   wa: string;
   email: string;
@@ -107,6 +116,7 @@ export interface Settings {
   kpiBlueprint?: string[];
   workflowBlueprint?: string[];
   actionBlueprint?: string[];
+  updatedAt: string;
 }
 
 export interface TemplateCustomization {
@@ -127,12 +137,13 @@ export interface InvoiceBranding {
 
 export interface User {
   id: string;
+  organizationId: string;
   username: string;
   email?: string;
-  passwordHash: string;
   role: 'admin' | 'employee';
-  createdAt: number;
-  lastLogin?: number;
+  createdAt: string;
+  updatedAt: string;
+  lastLogin?: string;
 }
 
 export interface AuthState {

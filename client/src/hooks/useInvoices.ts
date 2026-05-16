@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Invoice } from '@/types';
 import { dbGetAll, dbPut, dbDelete } from '@/services/db';
 import { generateId } from '@/services/utils';
+import { syncService } from '@/services/syncService';
 
 export function useInvoices(enabled = true) {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -12,7 +13,7 @@ export function useInvoices(enabled = true) {
     try {
       setLoading(true);
       const data = await dbGetAll<Invoice>('invoices');
-      setInvoices(data.sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt)));
+      setInvoices(data.sort((a, b) => (b.updatedAt || b.createdAt) > (a.updatedAt || a.createdAt) ? 1 : -1));
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load invoices');
@@ -23,16 +24,20 @@ export function useInvoices(enabled = true) {
   }, []);
 
   const saveInvoice = useCallback(
-    async (invoice: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: number; updatedAt?: number }) => {
+    async (invoice: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string; updatedAt?: string }) => {
       try {
         const invoiceData: Invoice = {
           id: invoice.id || generateId(),
-          createdAt: invoice.createdAt || Date.now(),
-          updatedAt: Date.now(),
+          createdAt: invoice.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           ...invoice,
         } as Invoice;
 
         await dbPut('invoices', invoiceData);
+
+        const operation = invoice.id ? 'update' : 'create';
+        await syncService.queueChange(operation, 'invoice', invoiceData.id, invoiceData);
+
         await loadInvoices();
         return invoiceData;
       } catch (err) {
@@ -47,6 +52,7 @@ export function useInvoices(enabled = true) {
     async (id: string) => {
       try {
         await dbDelete('invoices', id);
+        await syncService.queueChange('delete', 'invoice', id, {});
         await loadInvoices();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to delete invoice');

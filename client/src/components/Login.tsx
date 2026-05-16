@@ -8,11 +8,19 @@ import { Card } from './ui/card';
 
 export function Login() {
   const { auth, settings } = useApp();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState(settings.settings.industry || 'sourcing');
   const [error, setError] = useState('');
-  const [setupStep, setSetupStep] = useState<'admin' | 'industry' | 'login'>(() => (auth.hasAdmin() ? 'login' : 'admin'));
+  const [setupStep, setSetupStep] = useState<'admin' | 'industry' | 'login' | 'loading'>('loading');
+
+  useEffect(() => {
+    async function checkAdmin() {
+      const admin la = await auth.hasAdmin();
+      setSetupStep(la ? 'login' : 'admin');
+    }
+    checkAdmin();
+  }, [auth]);
 
   const currentProfile = INDUSTRY_PROFILES.find((profile) => profile.id === selectedIndustry) || INDUSTRY_PROFILES[0];
 
@@ -22,7 +30,7 @@ export function Login() {
   const handleAdminSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const success = await auth.registerAdmin(username, password);
+    const success = await auth.registerAdmin(email, password);
     if (!success) {
       setError('Failed to create the admin account.');
       return;
@@ -33,9 +41,9 @@ export function Login() {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const success = await auth.login(username, password);
+    const success = await auth.login(email, password);
     if (!success) {
-      setError('Invalid username or password.');
+      setError('Invalid email or password.');
     }
   };
 
@@ -141,14 +149,14 @@ export function Login() {
         ) : (
           <form onSubmit={showAdminSetup ? handleAdminSubmit : handleLoginSubmit} className="space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Username</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground ml-1">Email</label>
               <input
-                type="text"
+                type="email"
                 required
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="w-full px-4 py-3 bg-secondary/50 border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
-                placeholder="Enter your username"
+                placeholder="name@company.com"
               />
             </div>
 

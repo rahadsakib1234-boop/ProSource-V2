@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { Client } from '@/types';
 import { dbGetAll, dbPut, dbDelete } from '@/services/db';
 import { generateId } from '@/services/utils';
+import { syncService } from '@/services/syncService';
 
 export function useClients(enabled = true) {
   const [clients, setClients] = useState<Client[]>([]);
@@ -23,15 +24,21 @@ export function useClients(enabled = true) {
   }, []);
 
   const saveClient = useCallback(
-    async (client: Omit<Client, 'id' | 'createdAt'> & { id?: string; createdAt?: number }) => {
+    async (client: Omit<Client, 'id' | 'createdAt' | 'updatedAt'> & { id?: string; createdAt?: string; updatedAt?: string }) => {
       try {
         const clientData: Client = {
           id: client.id || generateId(),
-          createdAt: client.createdAt || Date.now(),
+          createdAt: client.createdAt || new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           ...client,
         } as Client;
 
         await dbPut('clients', clientData);
+
+        // Queue for cloud sync
+        const operation = client.id ? 'update' : 'create';
+        await syncService.queueChange(operation, 'client', clientData.id, clientData);
+
         await loadClients();
         return clientData;
       } catch (err) {
@@ -46,6 +53,10 @@ export function useClients(enabled = true) {
     async (id: string) => {
       try {
         await dbDelete('clients', id);
+
+        // Queue for cloud sync
+        await syncService.queueChange('delete', 'client', id, {});
+
         await loadClients();
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to delete client');
