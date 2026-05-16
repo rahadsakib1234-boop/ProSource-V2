@@ -6,6 +6,7 @@
 import { useApp } from '@/contexts/AppContext';
 import { Layout } from '@/components/Layout';
 import { StatCard } from '@/components/StatCard';
+import { AIAssistant } from '@/components/AIAssistant';
 import { formatCurrency } from '@/services/currency';
 import { CORE_PLATFORM_SECTIONS, getActiveIndustryProfile, getActiveIndustryBlueprint } from '@/services/templateCustomization';
 
@@ -38,6 +39,8 @@ export default function Dashboard() {
             <div className="text-sm font-semibold text-foreground">{blueprint.workflows[0] || 'Default CRM flow'}</div>
           </div>
         </div>
+
+        <AIAssistant />
 
         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
           <div className="flex items-start justify-between gap-4 mb-4">
