@@ -36,13 +36,17 @@ class AIService {
         console.warn('Failed to read Supabase session:', sessionError.message);
       }
 
-      const headers = sessionData?.session?.access_token
-        ? { Authorization: `Bearer ${sessionData.session.access_token}` }
-        : undefined;
+      const accessToken = sessionData?.session?.access_token;
+      if (!accessToken) {
+        throw new Error('You must be signed in to use the AI assistant.');
+      }
 
       const { data, error } = await supabase.functions.invoke('ai-assistant', {
         body: request,
-        headers,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (error) throw error;

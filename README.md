@@ -79,9 +79,21 @@ Required GitHub secrets:
 - `VERCEL_ORG_ID`
 - `VERCEL_PROJECT_ID`
 
+Required environment variables for local development:
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `GEMMA_API_KEY`
+
+Copy `.env.example` to `.env` and fill in the values before running locally.
+
 Required Vercel environment variables:
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY`
+
+Required Supabase function secret:
+- `GEMMA_API_KEY`
+
+For local development, copy `.env.example` to `.env` and fill in the values.
 
 ## Important notes
 

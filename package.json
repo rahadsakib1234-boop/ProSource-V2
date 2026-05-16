@@ -10,6 +10,7 @@
     "dev": "vite --host",
     "build": "pnpm run build:web",
     "build:web": "vite build",
+    "deploy:ai-assistant": "sh scripts/deploy-ai-assistant.sh",
     "preview": "vite preview --host",
     "check": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
