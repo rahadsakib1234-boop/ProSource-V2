@@ -1,22 +1,513 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ProSource CRM — One Platform, Every Industry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600;1,700&family=Cabinet+Grotesk:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#080810;--bg2:#0f0f1a;--bg3:#161625;
+      --gold:#c8a84b;--gold2:#e0c97a;--goldfaint:rgba(200,168,75,0.12);--goldborder:rgba(200,168,75,0.22);
+      --cream:#f0ebe0;--cream60:rgba(240,235,224,0.6);--cream30:rgba(240,235,224,0.3);--cream10:rgba(240,235,224,0.07);
+      --accent:#5b8def;--green:#3ecf8e;
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Cabinet Grotesk',sans-serif;background:var(--bg);color:var(--cream);overflow-x:hidden}
 
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-    <title>ProSource CRM v2</title>    
-    <!-- THIS IS THE START OF A COMMENT BLOCK, BLOCK TO BE DELETED: Google Fonts here, example:
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    THIS IS THE END OF A COMMENT BLOCK, BLOCK TO BE DELETED -->
-  </head>
+    .cur{position:fixed;width:6px;height:6px;background:var(--gold);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+    .cur-ring{position:fixed;width:28px;height:28px;border:1px solid rgba(200,168,75,.35);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .25s,height .25s,border-color .25s}
+    .cur-ring.h{width:44px;height:44px;border-color:var(--gold)}
+    @media(pointer:coarse){.cur,.cur-ring{display:none}}
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:1.1rem 4rem;background:rgba(8,8,16,.88);backdrop-filter:blur(18px);border-bottom:1px solid rgba(200,168,75,.08)}
+    .logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;color:var(--cream);text-decoration:none}
+    .logo b{color:var(--gold)}
+    nav ul{display:flex;gap:2.5rem;list-style:none}
+    nav ul a{font-size:.75rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--cream30);text-decoration:none;transition:color .2s}
+    nav ul a:hover{color:var(--gold)}
+    .nav-btn{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--gold);color:#080810;padding:.55rem 1.4rem;border-radius:2px;text-decoration:none;transition:background .2s,transform .15s}
+    .nav-btn:hover{background:var(--gold2);transform:translateY(-1px)}
+    @media(max-width:768px){nav{padding:1rem 1.5rem}nav ul{display:none}}
 
+    /* HERO */
+    .hero{min-height:100vh;display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:4rem;padding:9rem 4rem 5rem;position:relative;overflow:hidden}
+    .hero-glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 55% 45% at 75% 45%,rgba(200,168,75,.06) 0%,transparent 65%),radial-gradient(ellipse 35% 50% at 15% 70%,rgba(91,141,239,.05) 0%,transparent 60%)}
+    .hero-left{position:relative;z-index:2}
+    .hero-pill{display:inline-flex;align-items:center;gap:.5rem;font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);border:1px solid var(--goldborder);padding:.35rem .85rem;border-radius:2px;margin-bottom:1.8rem;opacity:0;animation:fadeUp .7s ease .1s forwards}
+    .hero-pill::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--gold);animation:blink 2s infinite}
+    .hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(2.8rem,5.5vw,5.2rem);font-weight:700;line-height:1.0;letter-spacing:-.01em;opacity:0;animation:fadeUp .8s ease .25s forwards}
+    .hero h1 em{font-style:italic;color:var(--gold)}
+    .hero-sub{margin-top:1.6rem;font-size:1rem;font-weight:300;color:var(--cream60);line-height:1.75;max-width:460px;opacity:0;animation:fadeUp .8s ease .4s forwards}
+    .hero-actions{margin-top:2.5rem;display:flex;align-items:center;gap:1.8rem;flex-wrap:wrap;opacity:0;animation:fadeUp .8s ease .55s forwards}
+    .btn-gold{display:inline-flex;align-items:center;gap:.6rem;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--gold);color:#080810;padding:.9rem 2rem;border-radius:2px;text-decoration:none;border:none;transition:background .2s,transform .15s,box-shadow .2s;cursor:pointer}
+    .btn-gold:hover{background:var(--gold2);transform:translateY(-2px);box-shadow:0 12px 36px rgba(200,168,75,.22)}
+    .btn-gold svg{transition:transform .2s}
+    .btn-gold:hover svg{transform:translateX(3px)}
+    .btn-ghost{font-size:.78rem;font-weight:400;color:var(--cream30);text-decoration:none;display:flex;align-items:center;gap:.4rem;transition:color .2s}
+    .btn-ghost:hover{color:var(--cream)}
+    .hero-note{margin-top:1.2rem;font-family:'JetBrains Mono',monospace;font-size:.64rem;color:rgba(240,235,224,.22);opacity:0;animation:fadeUp .8s ease .7s forwards}
+    .hero-note strong{color:rgba(200,168,75,.6)}
+
+    /* APP MOCKUP */
+    .hero-right{position:relative;z-index:2;opacity:0;animation:fadeLeft .9s ease .6s forwards}
+    .app-frame{background:var(--bg2);border:1px solid rgba(200,168,75,.14);border-radius:10px;overflow:hidden;box-shadow:-20px 20px 70px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.02)}
+    .app-topbar{background:var(--bg3);border-bottom:1px solid rgba(255,255,255,.04);padding:.6rem 1rem;display:flex;align-items:center;gap:.75rem}
+    .app-dot{width:9px;height:9px;border-radius:50%}
+    .d-r{background:#ff5f57}.d-y{background:#febc2e}.d-g{background:#28c840}
+    .app-url{margin-left:.5rem;flex:1;background:rgba(255,255,255,.04);border-radius:3px;padding:.25rem .75rem;font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--cream30)}
+    .app-body{display:grid;grid-template-columns:155px 1fr;height:330px}
+    .app-sidebar{background:rgba(10,10,20,.6);border-right:1px solid rgba(255,255,255,.04);padding:.75rem 0}
+    .app-brand{padding:.4rem 1rem .75rem;font-family:'Cormorant Garamond',serif;font-size:.95rem;font-weight:700;border-bottom:1px solid rgba(255,255,255,.04);margin-bottom:.5rem}
+    .app-brand span{color:var(--gold)}
+    .app-nav-item{display:flex;align-items:center;gap:.5rem;padding:.38rem 1rem;font-size:.62rem;color:rgba(240,235,224,.4);transition:background .2s,color .2s;cursor:pointer}
+    .app-nav-item:hover,.app-nav-item.active{background:rgba(200,168,75,.08);color:var(--cream)}
+    .app-nav-item.active{border-left:2px solid var(--gold)}
+    .app-main{padding:1rem;overflow:hidden;display:flex;flex-direction:column;gap:.65rem}
+    .app-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+    .app-stat{background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:5px;padding:.65rem}
+    .app-stat-l{font-size:.52rem;text-transform:uppercase;letter-spacing:.1em;color:var(--cream30);margin-bottom:.3rem}
+    .app-stat-v{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700}
+    .app-stat-v.gold{color:var(--gold)}
+    .app-stat-b{font-size:.5rem;color:var(--green);background:rgba(62,207,142,.08);padding:.12rem .3rem;border-radius:2px;margin-top:.2rem;display:inline-block}
+    .app-ai{background:linear-gradient(135deg,rgba(91,141,239,.15),rgba(91,141,239,.05));border:1px solid rgba(91,141,239,.2);border-radius:5px;padding:.65rem;font-size:.58rem;color:rgba(240,235,224,.6);line-height:1.5}
+    .app-ai-head{display:flex;align-items:center;gap:.3rem;font-size:.55rem;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);margin-bottom:.35rem;font-weight:700}
+    .app-table{background:var(--bg3);border:1px solid rgba(255,255,255,.05);border-radius:5px;overflow:hidden;flex:1}
+    .app-row{display:flex;align-items:center;justify-content:space-between;padding:.4rem .75rem;border-bottom:1px solid rgba(255,255,255,.03);font-size:.58rem}
+    .app-row:last-child{border-bottom:none}
+    .app-row-n{color:rgba(240,235,224,.65)}
+    .app-row-v{font-family:'JetBrains Mono',monospace;color:var(--gold);font-size:.55rem}
+    .app-badge{font-size:.5rem;padding:.1rem .3rem;border-radius:2px}
+    .b-g{background:rgba(62,207,142,.1);color:#3ecf8e}
+    .b-y{background:rgba(250,190,36,.1);color:#fbbe24}
+    .b-b{background:rgba(91,141,239,.12);color:#5b8def}
+
+    /* SECTIONS */
+    .sec-eye{font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:.9rem}
+    .sec-h{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,3.5vw,3rem);font-weight:700;line-height:1.1}
+    .sec-h em{font-style:italic;color:var(--gold)}
+    .sec-sub{font-size:.92rem;font-weight:300;color:var(--cream60);line-height:1.75;max-width:500px;margin-top:.75rem}
+
+    /* INDUSTRIES */
+    .industries{padding:6rem 4rem;position:relative;z-index:2}
+    .industry-tabs{display:flex;flex-wrap:wrap;gap:.5rem;margin:2.5rem 0 2rem}
+    .ind-tab{display:flex;align-items:center;gap:.5rem;font-size:.75rem;font-weight:500;color:var(--cream30);background:var(--bg2);border:1px solid rgba(255,255,255,.06);padding:.5rem 1rem;border-radius:2px;cursor:pointer;transition:all .2s}
+    .ind-tab:hover{color:var(--cream);border-color:rgba(200,168,75,.2)}
+    .ind-tab.active{color:var(--gold);background:var(--goldfaint);border-color:var(--goldborder)}
+    .ind-tab .emoji{font-size:1rem}
+    .ind-panel{display:none;animation:fadeUp .4s ease}
+    .ind-panel.show{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:start}
+    .ind-title{font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;margin-bottom:.5rem}
+    .ind-desc{font-size:.88rem;font-weight:300;color:var(--cream60);line-height:1.7;margin-bottom:1.5rem}
+    .ind-terms{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.5rem}
+    .term-chip{font-family:'JetBrains Mono',monospace;font-size:.62rem;background:var(--goldfaint);border:1px solid var(--goldborder);color:var(--gold);padding:.25rem .6rem;border-radius:2px}
+    .ind-modules{display:flex;flex-wrap:wrap;gap:.4rem}
+    .mod-chip{font-size:.68rem;font-weight:500;background:var(--bg3);border:1px solid rgba(255,255,255,.06);color:var(--cream30);padding:.2rem .6rem;border-radius:2px}
+    .ind-blueprint{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+    .bp-card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:6px;padding:.85rem}
+    .bp-card-h{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--cream30);margin-bottom:.5rem;font-weight:700}
+    .bp-tags{display:flex;flex-wrap:wrap;gap:.3rem}
+    .bp-tag{font-size:.6rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);padding:.15rem .4rem;border-radius:2px;color:rgba(240,235,224,.5)}
+    .bp-workflow{grid-column:1/-1;font-family:'JetBrains Mono',monospace;font-size:.6rem;color:var(--gold);background:var(--goldfaint);border:1px solid var(--goldborder);padding:.6rem .85rem;border-radius:4px;line-height:1.6}
+    .bp-wf-label{font-size:.55rem;text-transform:uppercase;letter-spacing:.1em;color:rgba(200,168,75,.5);margin-bottom:.3rem}
+
+    /* FEATURES */
+    .features{padding:6rem 4rem;position:relative;z-index:2}
+    .feat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;border:1px solid rgba(255,255,255,.05);border-radius:8px;overflow:hidden;margin-top:3.5rem}
+    .feat-card{background:var(--bg2);padding:2rem;position:relative;overflow:hidden;transition:background .3s}
+    .feat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);transform:scaleX(0);transition:transform .4s ease}
+    .feat-card:hover{background:var(--bg3)}
+    .feat-card:hover::after{transform:scaleX(1)}
+    .feat-ico{font-size:1.4rem;margin-bottom:1rem}
+    .feat-n{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;margin-bottom:.5rem}
+    .feat-d{font-size:.78rem;font-weight:300;color:var(--cream60);line-height:1.65}
+    .feat-tag{margin-top:1rem;font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--gold);opacity:.6;letter-spacing:.05em}
+
+    /* HOW */
+    .how{padding:6rem 4rem;position:relative;z-index:2;background:linear-gradient(to bottom,transparent,rgba(200,168,75,.02),transparent)}
+    .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:4rem;position:relative}
+    .steps::before{content:'';position:absolute;top:22px;left:12%;right:12%;height:1px;background:linear-gradient(90deg,var(--gold),rgba(200,168,75,.1),var(--gold))}
+    .step{text-align:center;padding:0 1.2rem}
+    .step-n{width:44px;height:44px;border-radius:50%;background:var(--bg3);border:1px solid var(--goldborder);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700;color:var(--gold);margin:0 auto 1.2rem;position:relative;z-index:1}
+    .step-t{font-family:'Cormorant Garamond',serif;font-size:1rem;font-weight:700;margin-bottom:.4rem}
+    .step-d{font-size:.75rem;font-weight:300;color:var(--cream60);line-height:1.6}
+
+    /* PRICING */
+    .pricing{padding:6rem 4rem;position:relative;z-index:2}
+    .price-wrap{max-width:560px;margin:3.5rem auto 0}
+    .price-card{background:var(--bg2);border:1px solid var(--goldborder);border-radius:10px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.4);position:relative}
+    .price-card::before{content:'';position:absolute;top:0;left:15%;right:15%;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+    .price-top{padding:2.5rem;border-bottom:1px solid rgba(255,255,255,.05)}
+    .price-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;background:var(--gold);color:#080810;padding:.25rem .7rem;border-radius:2px;margin-bottom:1.2rem;font-weight:700}
+    .price-name{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;margin-bottom:.3rem}
+    .price-tagline{font-size:.82rem;font-weight:300;color:var(--cream60)}
+    .price-amt{display:flex;align-items:baseline;gap:.4rem;margin-top:1.6rem}
+    .price-sym{font-family:'Cormorant Garamond',serif;font-size:1.5rem;font-weight:700;color:var(--gold)}
+    .price-num{font-family:'Cormorant Garamond',serif;font-size:4.5rem;font-weight:700;line-height:1;color:var(--cream)}
+    .price-per{font-size:.78rem;color:var(--cream30);font-weight:300;align-self:flex-end;padding-bottom:.4rem}
+    .price-bdt{margin-top:.4rem;font-family:'JetBrains Mono',monospace;font-size:.65rem;color:rgba(240,235,224,.25)}
+    .price-bdt strong{color:rgba(200,168,75,.6)}
+    .price-feats{padding:2rem 2.5rem;border-bottom:1px solid rgba(255,255,255,.05)}
+    .price-feat{display:flex;align-items:flex-start;gap:.75rem;margin-bottom:.9rem;font-size:.82rem;font-weight:300;color:var(--cream60);line-height:1.5}
+    .price-feat:last-child{margin-bottom:0}
+    .chk{width:16px;height:16px;border-radius:50%;background:var(--goldfaint);border:1px solid var(--goldborder);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.55rem;color:var(--gold);margin-top:1px}
+    .price-cta{padding:2rem 2.5rem}
+    .btn-full{display:flex;align-items:center;justify-content:center;gap:.6rem;width:100%;font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--gold);color:#080810;padding:1rem 2rem;border-radius:2px;text-decoration:none;border:none;transition:all .2s;cursor:pointer}
+    .btn-full:hover{background:var(--gold2);box-shadow:0 8px 28px rgba(200,168,75,.28);transform:translateY(-1px)}
+    .price-note{margin-top:.85rem;text-align:center;font-family:'JetBrains Mono',monospace;font-size:.6rem;color:rgba(240,235,224,.2);letter-spacing:.04em}
+
+    /* TESTIMONIALS */
+    .testimonials{padding:6rem 4rem;position:relative;z-index:2}
+    .testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;margin-top:3.5rem}
+    .testi-card{background:var(--bg2);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:1.8rem;position:relative}
+    .testi-card::before{content:'"';position:absolute;top:1rem;right:1.2rem;font-family:'Cormorant Garamond',serif;font-size:4rem;color:rgba(200,168,75,.08);line-height:1}
+    .testi-text{font-size:.83rem;font-weight:300;color:var(--cream60);line-height:1.75;margin-bottom:1.4rem}
+    .testi-auth{display:flex;align-items:center;gap:.65rem}
+    .testi-av{width:34px;height:34px;border-radius:50%;background:var(--goldfaint);border:1px solid var(--goldborder);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:.85rem;color:var(--gold);font-weight:700;flex-shrink:0}
+    .testi-info{flex:1}
+    .testi-name{font-size:.78rem;font-weight:500}
+    .testi-role{font-size:.65rem;color:var(--cream30);margin-top:.1rem}
+    .testi-ind{font-size:.62rem;color:var(--gold);opacity:.7;margin-top:.15rem;font-family:'JetBrains Mono',monospace}
+
+    /* FAQ */
+    .faq{padding:6rem 4rem;position:relative;z-index:2;max-width:760px;margin:0 auto}
+    .faq-item{border-bottom:1px solid rgba(255,255,255,.05)}
+    .faq-q{width:100%;text-align:left;background:none;border:none;color:var(--cream);font-family:'Cabinet Grotesk',sans-serif;font-size:.9rem;font-weight:500;padding:1.4rem 0;display:flex;align-items:center;justify-content:space-between;gap:1rem;cursor:pointer;transition:color .2s}
+    .faq-q:hover{color:var(--gold)}
+    .faq-ico{width:20px;height:20px;border:1px solid var(--goldborder);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--gold);font-size:.75rem;transition:transform .3s}
+    .faq-item.open .faq-ico{transform:rotate(45deg)}
+    .faq-a{font-size:.82rem;font-weight:300;color:var(--cream60);line-height:1.75;padding-bottom:1.4rem;display:none}
+    .faq-item.open .faq-a{display:block}
+
+    /* CTA */
+    .cta{margin:0 4rem 6rem;background:linear-gradient(135deg,var(--bg3),rgba(200,168,75,.06));border:1px solid var(--goldborder);border-radius:10px;padding:5rem 4rem;text-align:center;position:relative;overflow:hidden;z-index:2}
+    .cta::before{content:'';position:absolute;top:-40%;left:25%;right:25%;bottom:-40%;background:radial-gradient(ellipse,rgba(200,168,75,.07),transparent 65%)}
+    .cta h2{font-family:'Cormorant Garamond',serif;font-size:clamp(2rem,3.5vw,2.8rem);font-weight:700;line-height:1.15;margin-bottom:.8rem;position:relative}
+    .cta h2 em{font-style:italic;color:var(--gold)}
+    .cta p{font-size:.9rem;color:var(--cream60);font-weight:300;margin-bottom:2.2rem;position:relative}
+    .cta-btns{display:flex;justify-content:center;align-items:center;gap:1.5rem;flex-wrap:wrap;position:relative}
+
+    /* FOOTER */
+    footer{border-top:1px solid rgba(255,255,255,.04);padding:2.5rem 4rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.2rem;position:relative;z-index:2}
+    .foot-logo{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:700}
+    .foot-logo b{color:var(--gold)}
+    .foot-links{display:flex;gap:1.8rem;list-style:none}
+    .foot-links a{font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(240,235,224,.25);text-decoration:none;transition:color .2s}
+    .foot-links a:hover{color:var(--gold)}
+    .foot-copy{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:rgba(240,235,224,.18)}
+
+    .divider{display:flex;align-items:center;gap:1.2rem;padding:0 4rem;opacity:.35}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(200,168,75,.4),transparent)}
+    .divider span{font-family:'JetBrains Mono',monospace;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);white-space:nowrap}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeLeft{from{opacity:0;transform:translateX(30px)}to{opacity:.95;transform:translateX(0)}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+    .reveal.v{opacity:1;transform:translateY(0)}
+    .reveal-d1{transition-delay:.1s}.reveal-d2{transition-delay:.2s}
+
+    @media(max-width:1100px){
+      .hero{grid-template-columns:1fr;padding:8rem 2.5rem 4rem}
+      .hero-right{display:none}
+      .feat-grid{grid-template-columns:repeat(2,1fr)}
+      .testi-grid{grid-template-columns:1fr}
+      .steps{grid-template-columns:repeat(2,1fr);gap:2.5rem}
+      .steps::before{display:none}
+      .ind-panel.show{grid-template-columns:1fr}
+      .ind-right{display:none}
+    }
+    @media(max-width:640px){
+      .hero,.features,.industries,.how,.pricing,.testimonials,.cta{padding-left:1.5rem;padding-right:1.5rem}
+      .faq{padding-left:1.5rem;padding-right:1.5rem}
+      .cta{margin:0 1.5rem 4rem}
+      footer{padding:2rem 1.5rem;flex-direction:column;align-items:flex-start}
+      .feat-grid{grid-template-columns:1fr}
+      .steps{grid-template-columns:1fr}
+      .divider{padding:0 1.5rem}
+      .ind-blueprint{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+<div class="cur" id="cur"></div>
+<div class="cur-ring" id="curRing"></div>
+
+<nav>
+  <a href="#" class="logo">Pro<b>Source</b> CRM</a>
+  <ul>
+    <li><a href="#industries">Industries</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+  <a href="#pricing" class="nav-btn">Get started</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-left">
+    <div class="hero-pill">Multi-industry CRM platform</div>
+    <h1>One CRM.<br><em>Every industry.</em><br>Your rules.</h1>
+    <p class="hero-sub">ProSource CRM adapts its entire workspace — terminology, modules, workflows, and KPIs — to match exactly how your industry operates. Pick your field, start working immediately.</p>
+    <div class="hero-actions">
+      <a href="#pricing" class="btn-gold">
+        Start for $99/year
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <a href="#industries" class="btn-ghost">
+        Explore industries
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 9l-7 7-7-7"/></svg>
+      </a>
+    </div>
+    <p class="hero-note">$99/year &nbsp;·&nbsp; <strong>≈ ৳11,000 BDT</strong> &nbsp;·&nbsp; Stripe secure checkout &nbsp;·&nbsp; 7-day money back</p>
+  </div>
+  <div class="hero-right">
+    <div class="app-frame">
+      <div class="app-topbar">
+        <div class="app-dot d-r"></div><div class="app-dot d-y"></div><div class="app-dot d-g"></div>
+        <div class="app-url">app.prosourcecrm.com/#/dashboard</div>
+      </div>
+      <div class="app-body">
+        <div class="app-sidebar">
+          <div class="app-brand">Pro<span>Source</span></div>
+          <div class="app-nav-item active"><span>📊</span> Dashboard</div>
+          <div class="app-nav-item"><span>👥</span> Clients</div>
+          <div class="app-nav-item"><span>📦</span> Products</div>
+          <div class="app-nav-item"><span>🎯</span> Leads</div>
+          <div class="app-nav-item"><span>🔄</span> Operations</div>
+          <div class="app-nav-item"><span>🧾</span> Finance</div>
+          <div class="app-nav-item"><span>📈</span> Reports</div>
+          <div class="app-nav-item"><span>🗂️</span> Files</div>
+          <div class="app-nav-item"><span>⚙️</span> Settings</div>
+        </div>
+        <div class="app-main">
+          <div class="app-stats">
+            <div class="app-stat"><div class="app-stat-l">Revenue</div><div class="app-stat-v gold">$24k</div><div class="app-stat-b">↑ 18%</div></div>
+            <div class="app-stat"><div class="app-stat-l">Clients</div><div class="app-stat-v">48</div><div class="app-stat-b">+6 new</div></div>
+            <div class="app-stat"><div class="app-stat-l">Leads</div><div class="app-stat-v">17</div><div class="app-stat-b">3 closing</div></div>
+          </div>
+          <div class="app-ai">
+            <div class="app-ai-head">✦ AI Assistant</div>
+            Revenue up 18% vs last month. Top client Ahmed K. has 2 unpaid invoices totalling $3,400. Recommend following up within 48hrs.
+          </div>
+          <div class="app-table">
+            <div class="app-row"><span class="app-row-n">Ahmed K. — Electronics</span><span class="app-row-v">$8,500</span><span class="app-badge b-y">In transit</span></div>
+            <div class="app-row"><span class="app-row-n">Sarah M. — Textiles</span><span class="app-row-v">$3,200</span><span class="app-badge b-g">Delivered</span></div>
+            <div class="app-row"><span class="app-row-n">Liu Corp — Furniture</span><span class="app-row-v">$12,000</span><span class="app-badge b-b">Sourcing</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"><span>10 industries supported</span></div>
+
+<section class="industries" id="industries">
+  <div class="reveal">
+    <div class="sec-eye">Built for your world</div>
+    <h2 class="sec-h">Select your industry.<br><em>The CRM adapts.</em></h2>
+    <p class="sec-sub">Every industry gets its own terminology, modules, KPIs, and workflow logic. No more forcing your business into a generic CRM template.</p>
+  </div>
+  <div class="industry-tabs reveal reveal-d1">
+    <div class="ind-tab active" onclick="showInd('sourcing',this)"><span class="emoji">📦</span> General Sourcing</div>
+    <div class="ind-tab" onclick="showInd('real_estate',this)"><span class="emoji">🏠</span> Real Estate</div>
+    <div class="ind-tab" onclick="showInd('healthcare',this)"><span class="emoji">🏥</span> Healthcare</div>
+    <div class="ind-tab" onclick="showInd('finance',this)"><span class="emoji">💰</span> Finance & Insurance</div>
+    <div class="ind-tab" onclick="showInd('retail',this)"><span class="emoji">🛒</span> Retail & E-commerce</div>
+    <div class="ind-tab" onclick="showInd('education',this)"><span class="emoji">🎓</span> Education</div>
+    <div class="ind-tab" onclick="showInd('professional_services',this)"><span class="emoji">⚖️</span> Professional Services</div>
+    <div class="ind-tab" onclick="showInd('manufacturing',this)"><span class="emoji">🏭</span> Manufacturing</div>
+    <div class="ind-tab" onclick="showInd('fitness',this)"><span class="emoji">💪</span> Fitness & Wellness</div>
+    <div class="ind-tab" onclick="showInd('nonprofit',this)"><span class="emoji">🤝</span> Nonprofits</div>
+  </div>
+  <div id="ind-panels"></div>
+</section>
+
+<section class="features" id="features">
+  <div class="reveal">
+    <div class="sec-eye">Platform features</div>
+    <h2 class="sec-h">Everything your business <em>needs.</em></h2>
+  </div>
+  <div class="feat-grid reveal reveal-d1">
+    <div class="feat-card"><div class="feat-ico">👥</div><div class="feat-n">CRM & Client Management</div><div class="feat-d">Track every relationship with custom fields, notes, and full history. Terminology adapts — clients, patients, students, donors, policy holders.</div><div class="feat-tag">→ Clients · Contacts · Partners</div></div>
+    <div class="feat-card"><div class="feat-ico">📦</div><div class="feat-n">Products & Operations</div><div class="feat-d">Manage what your business delivers. Sourcing agents get supplier privacy. Retailers get inventory. Fitness studios get class scheduling.</div><div class="feat-tag">→ Products · Inventory · Services</div></div>
+    <div class="feat-card"><div class="feat-ico">🎯</div><div class="feat-n">Leads & Pipeline</div><div class="feat-d">Visual kanban pipeline with industry-specific stages. Convert leads to clients in one click. Track conversion rates and follow-up schedules.</div><div class="feat-tag">→ Leads · Pipeline · Deals</div></div>
+    <div class="feat-card"><div class="feat-ico">🧾</div><div class="feat-n">Invoicing & Finance</div><div class="feat-d">Multi-currency invoices with your branding. 22 currencies including BDT, USD, CNY, AED. PDF export, discounts, tax, and payment tracking.</div><div class="feat-tag">→ Invoices · PDF · 22 Currencies</div></div>
+    <div class="feat-card"><div class="feat-ico">✦</div><div class="feat-n">AI Assistant</div><div class="feat-d">Gemma-powered AI reads your live CRM data — revenue health, lead opportunities, follow-up priorities. Contextual insights, not generic advice.</div><div class="feat-tag">→ Financial AI · Lead Analysis</div></div>
+    <div class="feat-card"><div class="feat-ico">📊</div><div class="feat-n">Reports & Export</div><div class="feat-d">Revenue trends, conversion rates, KPIs. Dual Excel export — private (with supplier data + margins) and client-safe (sanitized). CSV backup included.</div><div class="feat-tag">→ Dashboard · Reports · Excel · CSV</div></div>
+    <div class="feat-card"><div class="feat-ico">👤</div><div class="feat-n">Team & Permissions</div><div class="feat-d">Add employees with module-level RBAC. Control exactly what each person can see. Personal accounts stay single-user. Company accounts are unlimited.</div><div class="feat-tag">→ Admin · Employee · RBAC</div></div>
+    <div class="feat-card"><div class="feat-ico">🗂️</div><div class="feat-n">Files & Documents</div><div class="feat-d">Attach files to clients, products, and invoices. Centralized file management built into the same workspace — no external tools needed.</div><div class="feat-tag">→ Files · Documents · Attachments</div></div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="reveal" style="text-align:center">
+    <div class="sec-eye">Simple onboarding</div>
+    <h2 class="sec-h" style="display:inline-block">Running in <em>minutes.</em></h2>
+  </div>
+  <div class="steps reveal reveal-d1">
+    <div class="step"><div class="step-n">1</div><div class="step-t">Create account</div><div class="step-d">Enter your email and password. Your private multi-tenant workspace is created instantly.</div></div>
+    <div class="step"><div class="step-n">2</div><div class="step-t">Subscribe via Stripe</div><div class="step-d">Pay $99/year securely. No hidden fees, no usage limits. Cancel anytime from your dashboard.</div></div>
+    <div class="step"><div class="step-n">3</div><div class="step-t">Pick your industry</div><div class="step-d">Choose from 10 industry templates. Your modules, labels, and workflows reconfigure instantly.</div></div>
+    <div class="step"><div class="step-n">4</div><div class="step-t">Start working</div><div class="step-d">Add your first client, product, or lead. It already speaks your industry's language.</div></div>
+  </div>
+</section>
+
+<section class="pricing" id="pricing">
+  <div class="reveal" style="text-align:center">
+    <div class="sec-eye">Pricing</div>
+    <h2 class="sec-h" style="display:inline-block">One plan. <em>Everything</em> included.</h2>
+  </div>
+  <div class="price-wrap reveal reveal-d1">
+    <div class="price-card">
+      <div class="price-top">
+        <div class="price-badge">Professional</div>
+        <div class="price-name">ProSource CRM</div>
+        <div class="price-tagline">Full access across all 10 industries. Unlimited everything.</div>
+        <div class="price-amt"><div class="price-sym">$</div><div class="price-num">99</div><div class="price-per">/ year</div></div>
+        <div class="price-bdt">Approximately <strong>৳11,000 BDT</strong> per year &nbsp;·&nbsp; billed annually via Stripe</div>
+      </div>
+      <div class="price-feats">
+        <div class="price-feat"><div class="chk">✓</div>All 10 industry templates — switch anytime</div>
+        <div class="price-feat"><div class="chk">✓</div>Unlimited clients, products, leads, invoices, and files</div>
+        <div class="price-feat"><div class="chk">✓</div>22 currencies — BDT, USD, CNY, AED, GBP, EUR and more</div>
+        <div class="price-feat"><div class="chk">✓</div>AI Assistant — financial health and lead opportunity analysis</div>
+        <div class="price-feat"><div class="chk">✓</div>PDF invoicing with your branding and logo</div>
+        <div class="price-feat"><div class="chk">✓</div>Dual Excel export — private (margins + suppliers) and client-safe</div>
+        <div class="price-feat"><div class="chk">✓</div>Team access — unlimited employees with custom permissions</div>
+        <div class="price-feat"><div class="chk">✓</div>Secure multi-tenant cloud — your data fully isolated from others</div>
+        <div class="price-feat"><div class="chk">✓</div>Priority email support</div>
+      </div>
+      <div class="price-cta">
+        <a href="/app/register" class="btn-full">
+          Get started — $99/year
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <div class="price-note">Secure payment via Stripe &nbsp;·&nbsp; 7-day money back guarantee &nbsp;·&nbsp; Cancel anytime</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="testimonials">
+  <div class="reveal">
+    <div class="sec-eye">From the field</div>
+    <h2 class="sec-h">What professionals say.</h2>
+  </div>
+  <div class="testi-grid reveal reveal-d1">
+    <div class="testi-card">
+      <div class="testi-text">The sourcing template is exactly what I needed. Clients get clean quotes — they never see my supplier links or margins. Protects my entire business model.</div>
+      <div class="testi-auth"><div class="testi-av">R</div><div class="testi-info"><div class="testi-name">Rafiq A.</div><div class="testi-role">Import Agent · Dhaka 🇧🇩</div><div class="testi-ind">📦 General Sourcing</div></div></div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-text">The real estate template already had site visits, commission invoices, and property pipeline configured. Zero setup time. Switched from Salesforce in a day.</div>
+      <div class="testi-auth"><div class="testi-av">N</div><div class="testi-info"><div class="testi-name">Nadia H.</div><div class="testi-role">Property Broker · Dubai 🇦🇪</div><div class="testi-ind">🏠 Real Estate</div></div></div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-text">200+ gym members, class schedules, trainer assignments, and expiry tracking — the fitness template had all of it built in. Impressive for the price.</div>
+      <div class="testi-auth"><div class="testi-av">K</div><div class="testi-info"><div class="testi-name">Kevin L.</div><div class="testi-role">Gym Owner · Kuala Lumpur 🇲🇾</div><div class="testi-ind">💪 Fitness & Wellness</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <div class="sec-eye reveal">Common questions</div>
+  <h2 class="sec-h reveal" style="margin-bottom:2.5rem">Everything you need <em>to know.</em></h2>
+  <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">Can I switch between industry templates after signing up?<div class="faq-ico">+</div></button><div class="faq-a">Yes — change your industry anytime from Settings. Your data (clients, products, leads, invoices) stays intact. Only the terminology, module labels, KPIs, and blueprint update.</div></div>
+  <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">How does the AI Assistant work?<div class="faq-ico">+</div></button><div class="faq-a">The AI Assistant is powered by Google's Gemma model, running as a Supabase Edge Function. It reads your actual live CRM data — invoices, leads, clients — and gives contextual financial and lead analysis. Your data is never stored or used to train any model.</div></div>
+  <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">Can I pay in BDT / Bangladeshi Taka?<div class="faq-ico">+</div></button><div class="faq-a">Stripe charges in USD ($99/year). Your bank converts to BDT at their current rate — approximately ৳11,000/year. Visa and Mastercard issued in Bangladesh work on Stripe. bKash integration is on our roadmap.</div></div>
+  <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">What is the dual Excel export?<div class="faq-ico">+</div></button><div class="faq-a">You can export two versions of your data. The private export includes everything — supplier names, supplier links, cost prices, and margins. The client-safe export strips all sensitive data, leaving only what's appropriate to share with buyers. This protects your sourcing relationships and margins.</div></div>
+  <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">Is my data isolated from other organizations?<div class="faq-ico">+</div></button><div class="faq-a">Completely. ProSource uses Supabase Row-Level Security with strict multi-tenant isolation enforced at the database level. Every client, product, invoice, and file is invisible to any other account — this isn't just application-level filtering.</div></div>
+  <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">How many team members can I add?<div class="faq-ico">+</div></button><div class="faq-a">Company accounts support unlimited employees, each with module-level permissions you control. Personal accounts are single-user by design.</div></div>
+  <div class="faq-item"><button class="faq-q" onclick="toggleFaq(this)">What happens when I cancel?<div class="faq-ico">+</div></button><div class="faq-a">You keep full access until the end of your billing year. After that, your account is locked but all data is retained for 30 days so you can export everything before it's removed.</div></div>
+</section>
+
+<div class="cta reveal">
+  <h2>Your industry. Your workflow. <em>Your CRM.</em></h2>
+  <p>Join professionals across 10 industries running cleaner, smarter operations with ProSource CRM.</p>
+  <div class="cta-btns">
+    <a href="/app/register" class="btn-gold">
+      Get started for $99/year
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-logo">Pro<b>Source</b> CRM</div>
+  <ul class="foot-links">
+    <li><a href="#">Privacy</a></li>
+    <li><a href="#">Terms</a></li>
+    <li><a href="#">Support</a></li>
+    <li><a href="/app">Log in</a></li>
+  </ul>
+  <div class="foot-copy">© 2026 ProSource CRM &nbsp;·&nbsp; Built for every industry</div>
+</footer>
+
+<script>
+const INDUSTRIES = {
+  sourcing:{icon:'📦',name:'General Sourcing',desc:'For sourcing agents, trading businesses, and procurement specialists who source products from suppliers and sell to clients — with full margin and supplier privacy.',terms:['Clients','Products','Sourcing Leads','Invoices'],modules:['Dashboard','Clients','Products','Leads','Pipeline','Invoices','Currency','Export','Settings'],bp:{dashboard:['Active Orders','Pending Shipments','Supplier Response Rate','Monthly Profit','Delayed Orders'],crm:['Clients','Buyers','Factories','Suppliers'],operations:['RFQs','Orders','Product Sourcing','Quality Control','Shipping'],finance:['Supplier Payments','Client Invoices','Profit Margins','Logistics Cost'],kpis:['Monthly Profit','Order Cycle Time','On-time Delivery Rate','Supplier Response Time'],workflow:'Lead → RFQ → Quote → Sample → Production → QC → Shipping → Delivery'}},
+  real_estate:{icon:'🏠',name:'Real Estate',desc:'Manage property listings, buyer and seller relationships, site visit scheduling, commission tracking, and transaction pipelines — all in one workspace.',terms:['Buyers & Sellers','Properties','Property Inquiries','Commission Invoices'],modules:['Dashboard','Clients','Products','Leads','Pipeline','Invoices','Export','Settings'],bp:{dashboard:['Active Listings','Closed Deals','Rental Revenue','Site Visits Today','Agent Performance'],crm:['Properties','Leads','Clients','Agents'],operations:['Site Visits','Contracts','Lease Management','Maintenance Requests'],finance:['Deposits','Commission Tracking','Rent Collection','Payments'],kpis:['Active Listings','Closed Deals','Rental Revenue','Lead Conversion'],workflow:'Lead → Site Visit → Offer → Contract → Payment → Handover'}},
+  healthcare:{icon:'🏥',name:'Healthcare & Life Sciences',desc:'Patient coordination, appointment management, medical billing, insurance tracking, and care team organization for clinics, specialists, and health services.',terms:['Patients','Care Plans','Patient Referrals','Medical Bills'],modules:['Dashboard','Clients','Leads','Pipeline','Invoices','Export'],bp:{dashboard:["Today's Appointments",'Patient Queue','Revenue','Emergency Cases','Follow-ups Due'],crm:['Patients','Doctors','Insurance','Care Teams'],operations:['Appointments','Medical Records','Prescriptions','Lab Results','Treatment Plans'],finance:['Billing','Insurance Claims','Copays','Outstanding Balances'],kpis:['Appointment Fill Rate','Average Wait Time','Claim Approval Rate','Revenue per Patient'],workflow:'Intake → Triage → Consultation → Prescription → Follow-up → Billing'}},
+  finance:{icon:'💰',name:'Finance & Insurance',desc:'Policy lifecycle management, claims processing, risk assessment, premium tracking, and client portfolio oversight for insurance brokers and financial advisors.',terms:['Policy Holders','Financial Products','Policy Leads','Premium Invoices'],modules:['Dashboard','Clients','Leads','Pipeline','Invoices','Export'],bp:{dashboard:['Active Policies','Claims Pending','Revenue','Risk Alerts','Renewals Due'],crm:['Clients','Agents','Policy Holders'],operations:['Policies','Claims','Loans','Risk Assessments'],finance:['Payments','Premiums','Commissions','Payouts'],kpis:['Active Policies','Claims Pending','Revenue','Renewal Forecast'],workflow:'Lead → Risk Review → Policy Issued → Premium Collected → Renewal'}},
+  retail:{icon:'🛒',name:'Retail & E-commerce',desc:'Customer purchase history, inventory management, order fulfillment, discount campaigns, and omnichannel operations for physical and online stores.',terms:['Customers','Catalog Items','Abandoned Carts','Sales Receipts'],modules:['Dashboard','Clients','Products','Invoices','Export'],bp:{dashboard:['Sales Today','Inventory Alerts','Best Sellers','Refund Requests'],crm:['Products','Orders','Customers','Vendors'],operations:['Inventory','Returns','Coupons','Fulfillment','Warehousing'],finance:['Payments','Refunds','Discounts','Revenue'],kpis:['Sales Today','Inventory Alerts','Best Sellers','Refund Rate'],workflow:'Browse → Add to Cart → Checkout → Fulfillment → Delivery → Return/Review'}},
+  education:{icon:'🎓',name:'Education & Training',desc:'Student lifecycle from inquiry to certificate. Courses, attendance, assignments, tuition payments, and enrollment pipelines for schools, academies, and training centers.',terms:['Students','Courses','Applications','Tuition Fees'],modules:['Dashboard','Clients','Leads','Invoices','Export'],bp:{dashboard:['Student Count','Attendance Rate','Upcoming Exams','Revenue'],crm:['Students','Teachers','Courses','Parents'],operations:['Attendance','Exams','Assignments','Certificates','Class Schedules'],finance:['Payments','Tuition Tracking','Scholarships','Dues'],kpis:['Enrollment Rate','Attendance Rate','Exam Pass Rate','Revenue per Student'],workflow:'Inquiry → Admission → Attendance → Exams → Certificate'}},
+  professional_services:{icon:'⚖️',name:'Professional Services',desc:'Project-based billing, time tracking, proposal management, and retainer invoicing for law firms, consultancies, design agencies, and marketing firms.',terms:['Clients','Service Packages','Proposals','Retainer Invoices'],modules:['Dashboard','Clients','Leads','Pipeline','Invoices','Export'],bp:{dashboard:['Active Projects','Billable Hours','Revenue','Proposals Pending'],crm:['Clients','Matters','Teams'],operations:['Projects','Timesheets','Deliverables','Contracts'],finance:['Retainers','Project Invoices','Billable Hours','Expenses'],kpis:['Utilization Rate','Project Margin','Proposal Win Rate','Average Project Value'],workflow:'Inquiry → Proposal → Contract → Kickoff → Delivery → Invoice → Close'}},
+  manufacturing:{icon:'🏭',name:'Manufacturing & Distribution',desc:'Supply chain visibility, B2B order management, distributor relationships, batch tracking, and production-to-delivery workflow for manufacturers and distributors.',terms:['Distributors','Inventory Items','Purchase Orders','Sales Orders'],modules:['Dashboard','Clients','Products','Invoices','Export'],bp:{dashboard:['Production Volume','Orders in Queue','Shipments Today','Distributor Count'],crm:['Distributors','Retailers','Supply Partners'],operations:['Production Orders','Quality Control','Warehousing','Logistics'],finance:['B2B Invoices','Purchase Orders','Payment Terms','Revenue'],kpis:['Production Efficiency','On-time Shipment Rate','Order Fulfillment Rate','Defect Rate'],workflow:'Order Received → Production → QC → Packaging → Shipment → Delivery'}},
+  fitness:{icon:'💪',name:'Fitness & Wellness',desc:'Membership management, class scheduling, trainer assignments, expiry tracking, trial pipelines, and revenue dashboards for gyms, studios, and wellness centers.',terms:['Members','Classes','Trials','Membership Payments'],modules:['Dashboard','Clients','Products','Leads','Pipeline','Invoices','Export','Settings'],bp:{dashboard:['Active Members','Classes Today','Revenue','Expiring Soon','Trials Pending'],crm:['Members','Trainers','Classes'],operations:['Check-ins','Class Schedule','Trainer Sessions','Membership Renewals'],finance:['Membership Fees','Personal Training','Trial Conversions','Refunds'],kpis:['Retention Rate','Trial Conversion Rate','Revenue per Member','Class Capacity'],workflow:'Trial → Assessment → Membership → Classes → Renewal → Retention'}},
+  nonprofit:{icon:'🤝',name:'Nonprofits',desc:'Donor relationship management, fundraising campaigns, volunteer coordination, grant tracking, and impact reporting for NGOs, foundations, and charitable organizations.',terms:['Donors','Campaigns','Volunteers','Donations'],modules:['Dashboard','Clients','Products','Leads','Pipeline','Invoices','Export','Settings'],bp:{dashboard:['Total Raised','Active Donors','Campaign Progress','Volunteer Count'],crm:['Donors','Volunteers','Partners'],operations:['Campaigns','Events','Volunteer Coordination','Impact Tracking'],finance:['Donations','Grants','Fundraising Revenue','Operating Expenses'],kpis:['Donor Retention Rate','Average Donation','Campaign ROI','Volunteer Hours'],workflow:'Prospect → Outreach → First Donation → Engagement → Recurring → Major Donor'}}
+};
+
+function showInd(id, tabEl) {
+  document.querySelectorAll('.ind-tab').forEach(t=>t.classList.remove('active'));
+  tabEl.classList.add('active');
+  renderPanel(id);
+}
+
+function renderPanel(id) {
+  const d = INDUSTRIES[id];
+  document.getElementById('ind-panels').innerHTML = `
+    <div class="ind-panel show">
+      <div class="ind-left">
+        <div class="ind-title">${d.icon} ${d.name}</div>
+        <div class="ind-desc">${d.desc}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(200,168,75,.55);margin-bottom:.6rem">Adapted terminology</div>
+        <div class="ind-terms">${d.terms.map(t=>`<div class="term-chip">${t}</div>`).join('')}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,235,224,.22);margin:.9rem 0 .5rem">Active modules</div>
+        <div class="ind-modules">${d.modules.map(m=>`<div class="mod-chip">${m}</div>`).join('')}</div>
+      </div>
+      <div class="ind-right">
+        <div class="ind-blueprint">
+          <div class="bp-card"><div class="bp-card-h">Dashboard KPIs</div><div class="bp-tags">${d.bp.dashboard.map(i=>`<span class="bp-tag">${i}</span>`).join('')}</div></div>
+          <div class="bp-card"><div class="bp-card-h">CRM entities</div><div class="bp-tags">${d.bp.crm.map(i=>`<span class="bp-tag">${i}</span>`).join('')}</div></div>
+          <div class="bp-card"><div class="bp-card-h">Operations</div><div class="bp-tags">${d.bp.operations.map(i=>`<span class="bp-tag">${i}</span>`).join('')}</div></div>
+          <div class="bp-card"><div class="bp-card-h">Finance</div><div class="bp-tags">${d.bp.finance.map(i=>`<span class="bp-tag">${i}</span>`).join('')}</div></div>
+          <div class="bp-card"><div class="bp-card-h">Key KPIs</div><div class="bp-tags">${d.bp.kpis.map(i=>`<span class="bp-tag">${i}</span>`).join('')}</div></div>
+          <div class="bp-workflow"><div class="bp-wf-label">Workflow</div>${d.bp.workflow}</div>
+        </div>
+      </div>
+    </div>`;
+}
+renderPanel('sourcing');
+
+// Cursor
+const cur=document.getElementById('cur'),ring=document.getElementById('curRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px'});
+(function tick(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(tick)})();
+document.querySelectorAll('a,button,.ind-tab').forEach(el=>{el.addEventListener('mouseenter',()=>ring.classList.add('h'));el.addEventListener('mouseleave',()=>ring.classList.remove('h'))});
+
+// Reveal
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('v');obs.unobserve(e.target)}})},{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+// FAQ
+function toggleFaq(btn){const item=btn.closest('.faq-item'),open=item.classList.contains('open');document.querySelectorAll('.faq-item').forEach(i=>i.classList.remove('open'));if(!open)item.classList.add('open')}
+</script>
+</body>
 </html>
