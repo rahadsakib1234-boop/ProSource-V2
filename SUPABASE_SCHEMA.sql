@@ -106,26 +106,20 @@ CREATE TABLE invoices (
 
 -- 7. Settings Table
 CREATE TABLE settings (
+...
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 8. Subscriptions Table
+CREATE TABLE subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id UUID NOT NULL UNIQUE REFERENCES organizations(id) ON DELETE CASCADE,
-  name TEXT,
-  wa TEXT,
-  email TEXT,
-  currency TEXT,
-  inv_prefix TEXT,
-  industry TEXT,
-  is_configured BOOLEAN DEFAULT false,
-  auth_enabled BOOLEAN DEFAULT false,
-  template_customization JSONB,
-  invoice_branding JSONB,
-  dashboard_blueprint TEXT[],
-  crm_blueprint TEXT[],
-  operations_blueprint TEXT[],
-  finance_blueprint TEXT[],
-  reports_blueprint TEXT[],
-  kpi_blueprint TEXT[],
-  workflow_blueprint TEXT[],
-  action_blueprint TEXT[],
+  stripe_customer_id TEXT,
+  stripe_subscription_id TEXT,
+  status TEXT CHECK (status IN ('incomplete', 'active', 'past_due', 'canceled', 'unpaid')),
+  plan TEXT,
+  current_period_end TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -141,12 +135,15 @@ ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 
+-- Organization access: Users can see the organization they belong to
 CREATE POLICY "Organization access" ON organizations
   USING (id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));
 
+-- Profile access: Users can read their own profile
 CREATE POLICY "Profile access" ON profiles
   USING (id = auth.uid());
 
+-- Multi-tenant isolation for all other tables
 CREATE POLICY "Client isolation" ON clients
   USING (organization_id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));
 
@@ -162,6 +159,7 @@ CREATE POLICY "Invoice isolation" ON invoices
 CREATE POLICY "Settings isolation" ON settings
   USING (organization_id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));
 
+-- Allow all policies to apply for INSERT, UPDATE, DELETE as well
 CREATE POLICY "Client all access" ON clients FOR ALL
   USING (organization_id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));
 
@@ -175,4 +173,7 @@ CREATE POLICY "Invoice all access" ON invoices FOR ALL
   USING (organization_id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));
 
 CREATE POLICY "Settings all access" ON settings FOR ALL
+  USING (organization_id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));
+
+CREATE POLICY "Subscription access" ON subscriptions
   USING (organization_id = (SELECT organization_id FROM profiles WHERE id = auth.uid()));

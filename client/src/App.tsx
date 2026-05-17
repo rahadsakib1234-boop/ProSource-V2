@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AppProvider, useApp } from "./contexts/AppContext";
 import { Login } from "./components/Login";
+import SubscriptionGate from "./components/SubscriptionGate";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -21,27 +22,30 @@ import Files from "./pages/Files";
 import Settings from "./pages/Settings";
 import UserManagement from "./pages/UserManagement";
 import EmployeeManagement from "./pages/EmployeeManagement";
+import Landing from "./pages/Landing";
+import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 
 function Router() {
   return (
     <WouterRouter hook={useHashLocation}>
       <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/clients" component={Clients} />
-      <Route path="/products" component={Products} />
-      <Route path="/leads" component={Leads} />
-      <Route path="/pipeline" component={Pipeline} />
-      <Route path="/invoices" component={Invoices} />
-      <Route path="/currency" component={Currency} />
-      <Route path="/export" component={Export} />
-      <Route path="/reports" component={Reports} />
-      <Route path="/files" component={Files} />
-      <Route path="/settings" component={Settings} />
-      <Route path="/users" component={UserManagement} />
-      <Route path="/employees" component={EmployeeManagement} />
-      <Route path="/404" component={NotFound} />
-        {/* Final fallback route */}
+        <Route path="/" component={Landing} />
+        <Route path="/app/register" component={Register} />
+        <Route path="/dashboard" component={Dashboard} />
+        <Route path="/clients" component={Clients} />
+        <Route path="/products" component={Products} />
+        <Route path="/leads" component={Leads} />
+        <Route path="/pipeline" component={Pipeline} />
+        <Route path="/invoices" component={Invoices} />
+        <Route path="/currency" component={Currency} />
+        <Route path="/export" component={Export} />
+        <Route path="/reports" component={Reports} />
+        <Route path="/files" component={Files} />
+        <Route path="/settings" component={Settings} />
+        <Route path="/users" component={UserManagement} />
+        <Route path="/employees" component={EmployeeManagement} />
+        <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>
     </WouterRouter>
@@ -51,6 +55,10 @@ function Router() {
 function AppContent() {
   const { settings, auth } = useApp();
   const isConfigured = Boolean(settings.settings.isConfigured);
+
+  // We can't use a hook like useLocation inside AppContent if it's outside the Router.
+  // But for simplicity, let's check if the current path is for public pages.
+  const isPublicPage = window.location.hash === '' || window.location.hash === '#/app/register';
 
   if (settings.loading || auth.loading) {
     return (
@@ -63,17 +71,35 @@ function AppContent() {
     );
   }
 
-  if (!auth.isAuthenticated || !isConfigured) {
+  if (isPublicPage) {
+    return (
+      <>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </>
+    );
+  }
+
+  if (!auth.isAuthenticated) {
+    return <Login />;
+  }
+
+  if (!isConfigured) {
+    // If they are authenticated but not configured, they might be in the onboarding phase.
+    // We can either show Login or a separate onboarding page.
+    // For now, let's keep showing Login or redirect to settings.
     return <Login />;
   }
 
   return (
-    <>
+    <SubscriptionGate>
       <TooltipProvider>
         <Toaster />
         <Router />
       </TooltipProvider>
-    </>
+    </SubscriptionGate>
   );
 }
 
