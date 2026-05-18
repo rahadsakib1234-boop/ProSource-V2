@@ -24,6 +24,7 @@ import UserManagement from "./pages/UserManagement";
 import EmployeeManagement from "./pages/EmployeeManagement";
 import Landing from "./pages/Landing";
 import Register from "./pages/Register";
+import AccountTypeSelection from "./pages/AccountTypeSelection";
 import NotFound from "./pages/NotFound";
 
 function Router() {

@@ -1,10 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { supabase } from '../lib/supabase'
-import { useNavigate } from 'wouter'
-import { Loader2, CheckCircle2 } from 'lucide-react'
+import { useNavigate, useLocation } from 'wouter'
+import { Loader2, CheckCircle2, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,13 +20,29 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 
 const Register = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [accountType, setAccountType] = useState<'company' | 'personal'>('company')
 
-  const { register, handleSubmit, formState: { errors } } = useForm<RegisterFormValues>({
+  // Get account type from URL query params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const type = urlParams.get('accountType') as 'company' | 'personal' | null
+    if (type === 'company' || type === 'personal') {
+      setAccountType(type)
+    }
+  }, [])
+
+  const { register, handleSubmit, formState: { errors }, setValue } = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: { accountType: 'company' }
   })
+
+  // Set the account type in the form when it changes
+  useEffect(() => {
+    setValue('accountType', accountType)
+  }, [accountType, setValue])
 
   const onSubmit = async (values: RegisterFormValues) => {
     setIsLoading(true)
@@ -57,18 +73,12 @@ const Register = () => {
 
       if (signInError) throw signInError
 
-      const { data: checkoutData, error: checkoutError } = await supabase.functions.invoke('create-checkout', {
-        headers: {
-          Authorization: `Bearer ${ (await supabase.auth.getSession()).data.session?.access_token }`
-        }
-      })
-
-      if (checkoutError || !checkoutData?.url) {
-        throw new Error(checkoutError?.message || 'Checkout session creation failed')
-      }
-
-      // Redirect to Stripe
-      window.location.href = checkoutData.url
+      // For now, we'll redirect to the app dashboard instead of Stripe
+      // In a real implementation, you would integrate Stripe here
+      setIsSuccess(true)
+      setTimeout(() => {
+        navigate('/dashboard')
+      }, 2000)
     } catch (error: any) {
       toast.error(error.message)
     } finally {
@@ -84,7 +94,7 @@ const Register = () => {
             <CheckCircle2 size={32} />
           </div>
           <h2 className="text-2xl font-bold mb-2">Account Created!</h2>
-          <p className="text-slate-600 mb-8">You are being redirected to Stripe to complete your setup.</p>
+          <p className="text-slate-600 mb-8">Welcome to ProSource CRM. You're being redirected to your dashboard.</p>
         </div>
       </div>
     )
@@ -93,9 +103,26 @@ const Register = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-6 py-12">
       <div className="bg-white p-8 rounded-2xl shadow-xl border border-slate-200 w-full max-w-md">
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => navigate('/account-type')}
+            className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
+          <div className="text-sm text-slate-500">
+            {accountType === 'company' ? 'Company Account' : 'Personal Account'}
+          </div>
+        </div>
+
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-slate-900">Create Your Account</h1>
-          <p className="text-slate-500 mt-2">Join ProSource CRM and start sourcing</p>
+          <p className="text-slate-500 mt-2">
+            {accountType === 'company'
+              ? 'Set up your company account to start managing your team'
+              : 'Create your personal account to start using ProSource CRM'}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -111,18 +138,27 @@ const Register = () => {
             {errors.password && <p className="text-red-500 text-xs">{errors.password.message}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label>Account Type</Label>
-            <div className="grid grid-cols-2 gap-4">
-              <label className="relative flex items-center gap-2 p-3 rounded-lg border cursor-pointer hover:bg-slate-50 transition-colors">
-                <input type="radio" value="company" {...register('accountType')} className="w-4 h-4 text-indigo-600" />
-                <span className="text-sm font-medium text-slate-700">Company</span>
-              </label>
-              <label className="relative flex items-center gap-2 p-3 rounded-lg border cursor-pointer hover:bg-slate-50 transition-colors">
-                <input type="radio" value="personal" {...register('accountType')} className="w-4 h-4 text-indigo-600" />
-                <span className="text-sm font-medium text-slate-700">Personal</span>
-              </label>
+          <input type="hidden" {...register('accountType')} value={accountType} />
+
+          <div className="bg-slate-50 rounded-lg p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`w-3 h-3 rounded-full ${accountType === 'company' ? 'bg-indigo-500' : 'bg-slate-300'}`}></div>
+              <span className="text-sm font-medium text-slate-700">Company Account Features</span>
             </div>
+            <ul className="text-xs text-slate-500 space-y-1">
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-300"></div>
+                Create employee accounts
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-300"></div>
+                Set permissions for team members
+              </li>
+              <li className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-indigo-300"></div>
+                Centralized billing and management
+              </li>
+            </ul>
           </div>
 
           <Button
