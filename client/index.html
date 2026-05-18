@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+<<<<<<< HEAD
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -511,3 +512,456 @@ function toggleFaq(btn){const item=btn.closest('.faq-item'),open=item.classList.
 </script>
 </body>
 </html>
+=======
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>ProSource CRM v2 - Next Generation Sourcing Intelligence</title>
+    <meta name="description" content="The CRM built specifically for sourcing professionals. Industry blueprints, AI-driven lead analysis, and local-first speed to help you close more deals.">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --primary: #4f46e5;
+        --primary-dark: #4338ca;
+        --secondary: #818cf8;
+        --dark: #1e293b;
+        --light: #f8fafc;
+        --gray: #64748b;
+        --light-gray: #e2e8f0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Inter', sans-serif;
+        color: var(--dark);
+        background-color: var(--light);
+        line-height: 1.6;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 1rem;
+      }
+
+      /* Header Styles */
+      header {
+        padding: 1rem 0;
+        position: sticky;
+        top: 0;
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--light-gray);
+        z-index: 100;
+      }
+
+      nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: var(--primary);
+      }
+
+      .logo-box {
+        width: 2.5rem;
+        height: 2.5rem;
+        background-color: var(--primary);
+        border-radius: 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+      }
+
+      .nav-link {
+        text-decoration: none;
+        color: var(--gray);
+        font-weight: 500;
+        transition: color 0.2s;
+      }
+
+      .nav-link:hover {
+        color: var(--primary);
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        border: none;
+        font-size: 1rem;
+      }
+
+      .btn-primary {
+        background-color: var(--primary);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background-color: var(--primary-dark);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);
+      }
+
+      .btn-outline {
+        background-color: transparent;
+        color: var(--primary);
+        border: 1px solid var(--primary);
+      }
+
+      .btn-outline:hover {
+        background-color: var(--primary);
+        color: white;
+      }
+
+      /* Hero Section */
+      .hero {
+        padding: 5rem 0;
+        text-align: center;
+      }
+
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: #eef2ff;
+        color: var(--primary);
+        padding: 0.5rem 1rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 2rem;
+        border: 1px solid #c7d2fe;
+      }
+
+      .hero h1 {
+        font-size: 3rem;
+        font-weight: 800;
+        line-height: 1.2;
+        margin-bottom: 1.5rem;
+        background: linear-gradient(to right, var(--primary), #7c3aed);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .hero p {
+        font-size: 1.25rem;
+        color: var(--gray);
+        max-width: 36rem;
+        margin: 0 auto 2.5rem;
+      }
+
+      .hero-buttons {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      /* Features Section */
+      .features {
+        padding: 5rem 0;
+        background-color: white;
+      }
+
+      .section-header {
+        text-align: center;
+        max-width: 36rem;
+        margin: 0 auto 3rem;
+      }
+
+      .section-title {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+      }
+
+      .section-description {
+        color: var(--gray);
+      }
+
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+      }
+
+      .feature-card {
+        background-color: var(--light);
+        border-radius: 1rem;
+        padding: 2rem;
+        border: 1px solid var(--light-gray);
+        transition: all 0.3s ease;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        border-color: #c7d2fe;
+      }
+
+      .feature-icon {
+        width: 3rem;
+        height: 3rem;
+        background-color: #eef2ff;
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        color: var(--primary);
+      }
+
+      .feature-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+      }
+
+      .feature-description {
+        color: var(--gray);
+      }
+
+      /* Pricing Section */
+      .pricing {
+        padding: 5rem 0;
+        background-color: var(--light);
+      }
+
+      .pricing-card {
+        background-color: white;
+        border-radius: 1.5rem;
+        padding: 2.5rem;
+        border: 2px solid var(--primary);
+        max-width: 28rem;
+        margin: 0 auto;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .popular-badge {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background-color: var(--primary);
+        color: white;
+        padding: 0.25rem 1rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-bottom-left-radius: 0.5rem;
+      }
+
+      .pricing-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+      }
+
+      .pricing-price {
+        font-size: 3rem;
+        font-weight: 800;
+        margin-bottom: 2rem;
+      }
+
+      .pricing-price span {
+        font-size: 1rem;
+        font-weight: 400;
+        color: var(--gray);
+      }
+
+      .pricing-features {
+        text-align: left;
+        margin-bottom: 2rem;
+      }
+
+      .pricing-feature {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        color: var(--gray);
+      }
+
+      .pricing-feature svg {
+        color: var(--primary);
+        flex-shrink: 0;
+      }
+
+      /* Footer */
+      footer {
+        padding: 3rem 0;
+        border-top: 1px solid var(--light-gray);
+        text-align: center;
+        color: var(--gray);
+        font-size: 0.875rem;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .hero h1 {
+          font-size: 2.25rem;
+        }
+
+        .hero p {
+          font-size: 1.125rem;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .hero-buttons {
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .btn {
+          width: 100%;
+          max-width: 20rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <nav>
+          <div class="logo">
+            <div class="logo-box">P</div>
+            <span>ProSource CRM</span>
+          </div>
+          <div class="nav-links">
+            <a href="#features" class="nav-link">Features</a>
+            <a href="#pricing" class="nav-link">Pricing</a>
+            <a href="/app/register" class="nav-link">Login</a>
+          </div>
+          <a href="/app/register" class="btn btn-primary">Get Started Free</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="container">
+          <div class="hero-badge">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span>Next Generation Sourcing Intelligence</span>
+          </div>
+          <h1>The CRM built for Sourcing Professionals</h1>
+          <p>Stop fighting with generic CRMs. ProSource provides industry-specific blueprints, AI-driven lead analysis, and local-first speed to help you close more deals.</p>
+          <div class="hero-buttons">
+            <a href="/app/register" class="btn btn-primary">Start Your Free Trial</a>
+            <a href="#features" class="btn btn-outline">View Features</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="features" id="features">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Everything you need to scale</h2>
+            <p class="section-description">Engineered for the specific complexities of sourcing businesses, not generic sales.</p>
+          </div>
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+              </div>
+              <h3 class="feature-title">Industry Blueprints</h3>
+              <p class="feature-description">Pre-configured workflows and data fields tailored to your specific industry sourcing needs.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              </div>
+              <h3 class="feature-title">Team Management</h3>
+              <p class="feature-description">Create employee accounts with custom permissions. Admins control exactly what each team member can access.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><bar-chart-3></bar-chart-3></svg>
+              </div>
+              <h3 class="feature-title">Financial Tracking</h3>
+              <p class="feature-description">Professional invoicing and product cost tracking with multi-currency support built-in.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pricing" id="pricing">
+        <div class="container">
+          <div class="section-header">
+            <h2 class="section-title">Simple, Transparent Pricing</h2>
+            <p class="section-description">Everything you need to run your sourcing business, with no hidden fees.</p>
+          </div>
+          <div class="pricing-card">
+            <div class="popular-badge">MOST POPULAR</div>
+            <h3 class="pricing-title">Pro Plan</h3>
+            <div class="pricing-price">$49<span>/month</span></div>
+            <ul class="pricing-features">
+              <li class="pricing-feature">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Unlimited Clients & Leads</span>
+              </li>
+              <li class="pricing-feature">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>All Industry Blueprints</span>
+              </li>
+              <li class="pricing-feature">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Employee Accounts (Company Plans)</span>
+              </li>
+              <li class="pricing-feature">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>AI-Powered Business Intelligence</span>
+              </li>
+              <li class="pricing-feature">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Professional Invoicing</span>
+              </li>
+            </ul>
+            <a href="/app/register" class="btn btn-primary" style="width: 100%;">Get Started Now</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container">
+        <p>© 2026 ProSource CRM. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+>>>>>>> 1729cea8 (feat: enhance index.html with improved layout, styles, and content for ProSource CRM v2)
