@@ -13,6 +13,7 @@ import { syncService } from '@/services/syncService';
 import { BackupListModal } from '@/components/BackupListModal';
 import { alertService } from '@/services/alertService';
 import { TemplateCustomizationPanel } from '@/components/TemplateCustomizationPanel';
+import { supabase } from '@/lib/supabase';
 
 export default function Settings() {
   const [, setLocation] = useHashLocation();
@@ -22,10 +23,25 @@ export default function Settings() {
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
   const [backupMessage, setBackupMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [showBackupModal, setShowBackupModal] = useState(false);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [isUpgrading, setIsUpgrading] = useState(false);
 
   useEffect(() => {
     setFormData(settings.settings);
   }, [settings.settings]);
+
+  useEffect(() => {
+    async function fetchSubscription() {
+      if (!auth.user?.organizationId) return;
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('organization_id', auth.user.organizationId)
+        .single();
+      setSubscription(data);
+    }
+    fetchSubscription();
+  }, [auth.user?.organizationId]);
 
   const handleSave = () => {
     settings.saveSettings(formData);
@@ -70,6 +86,27 @@ export default function Settings() {
 
   const handleRestoreBackup = (backupId: string) => {
     alertService.alertRestoreTriggered(`backup-${backupId}`);
+  };
+
+  const handleUpgrade = async () => {
+    setIsUpgrading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        headers: {
+          Authorization: `Bearer ${auth.session?.access_token ?? (await supabase.auth.getSession()).data.session?.access_token ?? ''}`,
+        },
+      });
+
+      if (error || !data?.url) {
+        throw new Error(error || 'Failed to create checkout session');
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      alertService.alertSyncFailed(error instanceof Error ? error.message : 'Upgrade failed');
+    } finally {
+      setIsUpgrading(false);
+    }
   };
 
   return (
@@ -245,6 +282,42 @@ export default function Settings() {
           )}
         </div>
 
+        {/* Billing & Subscription */}
+        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm max-w-2xl">
+          <h3 className="font-semibold text-foreground mb-4">💳 Billing & Subscription</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Manage your subscription plan and billing details.
+          </p>
+
+          <div className="flex items-center justify-between p-4 bg-secondary/50 rounded-xl border border-border">
+            <div>
+              <div className="text-sm font-medium text-foreground">
+                Current Plan: {subscription?.plan ? 'Pro Plan' : 'Free Plan'}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Status: {subscription?.status || 'No active subscription'}
+              </div>
+            </div>
+
+            {subscription?.status !== 'active' && (
+              <button
+                onClick={handleUpgrade}
+                disabled={isUpgrading}
+                className="px-4 py-2 bg-accent text-white rounded-lg font-medium text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isUpgrading ? '⏳ Processing...' : 'Upgrade to Pro'}
+              </button>
+            )}
+          </div>
+
+          {subscription?.status === 'active' && (
+            <div className="mt-4 flex items-center gap-2 text-green-600 text-sm">
+              <span>✓</span>
+              <span>Your account is currently on the Pro plan.</span>
+            </div>
+          )}
+        </div>
+
         {/* Team Management */}
         {auth.user?.role === 'admin' && (
           <div className="bg-card border border-border rounded-2xl p-6 shadow-sm max-w-2xl">
@@ -315,7 +388,7 @@ export default function Settings() {
             </label>
             <button
               onClick={() => {
-                if (window.confirm('This will permanently delete all data. Are you sure?')) {
+                if (window.confirm('This will permanently delete all laocal data. Are you sure?')) {
                   localStorage.clear();
                   window.location.reload();
                 }
@@ -325,6 +398,42 @@ export default function Settings() {
               🗑️ Clear All Data (Irreversible)
             </button>
           </div>
+        </div>
+
+        {/* Account Deletion */}
+        <div className="bg-card border border-red-200 rounded-2xl p-6 shadow-sm max-w-2xl">
+          <h3 className="font-semibold text-red-600 mb-4">Danger Zone</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            Once you delete your account, there is no going back. All of your data will be permanently removed from our servers.
+          </p>
+          <button
+            onClick={async () => {
+              if (!window.confirm('Are you absolutely sure you want to delete your account? This action is irreversible.')) return;
+
+              try {
+                const { data, error } = await supabase.functions.invoke('manage-users', {
+                  body: {
+                    action: 'delete',
+                    payload: { userId: auth.user?.id },
+                  },
+                  headers: {
+                    Authorization: `Bearer ${auth.session?.access_token ?? (await supabase.auth.getSession()).data.session?.access_token ?? ''}`,
+                  },
+                });
+
+                if (error || !data?.success) throw new Error(error || 'Failed to delete account');
+
+                alert('Account deleted successfully. You will be logged out.');
+                await supabase.auth.signOut();
+                window.location.href = '/';
+              } catch (error) {
+                alertService.alertSyncFailed(error instanceof Error ? error.message : 'Account deletion failed');
+              }
+            }}
+            className="w-full px-4 py-2 bg-red-600 text-white rounded-lg font-medium text-sm hover:bg-red-700 transition-colors"
+          >
+            Delete Account
+          </button>
         </div>
       </div>
 

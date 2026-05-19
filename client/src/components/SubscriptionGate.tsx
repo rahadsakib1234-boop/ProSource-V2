@@ -5,10 +5,12 @@ import { Loader2, Lock, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface SubscriptionGateProps {
-  children: React.ReactNode
+  children: React.ReactNode;
+  allowFree?: boolean;
 }
 
-const SubscriptionGate: React.FC<SubscriptionGateProps> = ({ children }) => {
+const SubscriptionGate: React.FC<SubscriptionGateProps> = ({ children, allowFree = false }) => {
+  const [isLoading, setIsLoading] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
   const [hasAccess, setHasAccess] = useState(false)
   const navigate = useNavigate()
@@ -45,7 +47,11 @@ const SubscriptionGate: React.FC<SubscriptionGateProps> = ({ children }) => {
         const isActive = sub?.status === 'active' &&
           (sub.current_period_end ? new Date(sub.current_period_end) > new Date() : false)
 
-        setHasAccess(isActive)
+        if (allowFree || isActive) {
+          setHasAccess(true);
+        } else {
+          setHasAccess(false);
+        }
       } catch (error) {
         console.error('Subscription check failed:', error)
         setHasAccess(false)

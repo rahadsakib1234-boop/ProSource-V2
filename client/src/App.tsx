@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import { AppProvider, useApp } from "./contexts/AppContext";
 import { Login } from "./components/Login";
 import SubscriptionGate from "./components/SubscriptionGate";
+import PermissionGate from "./components/PermissionGate";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -20,6 +21,11 @@ import Export from "./pages/Export";
 import Reports from "./pages/Reports";
 import Files from "./pages/Files";
 import Settings from "./pages/Settings";
+import Billing from "./pages/Billing";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
+import Onboarding from "./pages/Onboarding";
 import UserManagement from "./pages/UserManagement";
 import EmployeeManagement from "./pages/EmployeeManagement";
 import Landing from "./pages/Landing";
@@ -40,12 +46,17 @@ function Router() {
         <Route path="/pipeline" component={Pipeline} />
         <Route path="/invoices" component={Invoices} />
         <Route path="/currency" component={Currency} />
-        <Route path="/export" component={Export} />
-        <Route path="/reports" component={Reports} />
-        <Route path="/files" component={Files} />
+        <Route path="/export" component={() => <SubscriptionGate><Export /></SubscriptionGate>} />
+        <Route path="/reports" component={() => <SubscriptionGate><Reports /></SubscriptionGate>} />
+        <Route path="/files" component={() => <SubscriptionGate><Files /></SubscriptionGate>} />
         <Route path="/settings" component={Settings} />
-        <Route path="/users" component={UserManagement} />
-        <Route path="/employees" component={EmployeeManagement} />
+        <Route path="/billing" component={Billing} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/reset-password" component={ResetPassword} />
+        <Route path="/verify-email" component={VerifyEmail} />
+        <Route path="/onboarding" component={Onboarding} />
+        <Route path="/users" component={() => <SubscriptionGate><UserManagement /></SubscriptionGate>} />
+        <Route path="/employees" component={() => <SubscriptionGate><EmployeeManagement /></SubscriptionGate>} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>
@@ -95,12 +106,10 @@ function AppContent() {
   }
 
   return (
-    <SubscriptionGate>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
-    </SubscriptionGate>
+    <TooltipProvider>
+      <Toaster />
+      <Router />
+    </TooltipProvider>
   );
 }
 
